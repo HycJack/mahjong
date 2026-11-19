@@ -1,8 +1,8 @@
 {
   "name": "血战到底",
   "id": "com.huacnlee.mojang",
-  "version": "1.0.0",
-  "build": 1,
+  "version": "1.0.1",
+  "build": 2,
   "theme": "theme.json",
   "window": {
     "title": "血战到底",
