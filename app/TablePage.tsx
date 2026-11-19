@@ -4,8 +4,8 @@ import { cleanup, effect, keymap, Scroll, signal, Text, untracked, View } from "
 import { HUMAN, SEAT_NAMES } from "../game/engine";
 import { points } from "../game/rules";
 import { type Suit, suitName, SUITS } from "../game/tile";
-import { Appear, Button, cx, Dialog, Surface, Tile } from "../ui";
-import { compact } from "./layout";
+import { Appear, Button, cx, Dialog, ExternalLink, Surface, Tile } from "../ui";
+import { compact, REPO_URL } from "./layout";
 import { MyHand } from "./MyHand";
 import { OtherHand, River, SeatHeader, signed } from "./Seat";
 import type { Table } from "./store";
@@ -167,7 +167,12 @@ export function RulesDialog(props: { open: () => boolean; onClose: () => void })
     ["流局", "查花猪：手里还有缺门的赔每家 32 分。查大叫：没听牌的赔听牌的人他能胡的最大分。"],
   ];
   return (
-    <Dialog open={props.open()} title="规则" dismissible onClose={props.onClose} width="md" footer={<Button label="知道了" variant="primary" onPress={props.onClose} />}>
+    <Dialog open={props.open()} title="规则" dismissible onClose={props.onClose} width="md" footer={
+        <>
+          <ExternalLink label="源代码与下载" href={REPO_URL} tone="muted" class="mr-auto" />
+          <Button label="知道了" variant="primary" onPress={props.onClose} />
+        </>
+      }>
       <Scroll class={compact() ? "max-h-[180px]" : "max-h-[420px]"}>
       <View class="gap-2.5">
         <Each of={lines}>

@@ -1,10 +1,10 @@
 import { keymap, mount, signal, Text, View } from "nsh";
 import { createNavStack, NavPage, NavStack } from "nsh/base";
 import { titleBar } from "nsh/desktop";
-import { compact, touch } from "./app/layout";
+import { compact, REPO_URL, touch } from "./app/layout";
 import { createTable } from "./app/store";
 import { RulesDialog, TablePage } from "./app/TablePage";
-import { Badge, Button, cx } from "./ui";
+import { Badge, Button, cx, ExternalLink } from "./ui";
 
 function Game() {
   const table = createTable();
@@ -28,6 +28,7 @@ function Game() {
           {`累计：${table.totals().map((s, i) => `${["你", "下家", "对家", "上家"][i]} ${s > 0 ? "+" : ""}${s}`).join("　")}`}
         </Text>
         <View class="flex-1" />
+        <ExternalLink label="GitHub" href={REPO_URL} accessibilityLabel="在 GitHub 上查看源代码与下载" />
         <Button
           label={table.sounds.enabled() ? "音效 开" : "音效 关"}
           variant="ghost"

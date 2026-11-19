@@ -50,3 +50,13 @@ test("一局能打到结算，再来一局", async () => {
   await app.press("id:again");
   await app.waitFor("text:定缺");
 }, 120000);
+
+test("GitHub 入口打开项目主页", async () => {
+  const app = await open("./App.tsx", { width: 1280, height: 860 });
+  await app.press("id:void-tong");
+  await app.press("text:GitHub");
+  expect(app.openedUrls()).toContain("https://github.com/huacnlee/mojang");
+  await app.press("text:规则");
+  await app.press("text:源代码与下载");
+  expect(app.openedUrls().length).toBe(2);
+});

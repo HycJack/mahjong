@@ -3,6 +3,7 @@ export { Badge, type BadgeVariant } from "./Badge";
 export { Button, type ButtonSize, type ButtonVariant } from "./Button";
 export { cx } from "./cx";
 export { Dialog } from "./Dialog";
+export { ExternalLink } from "./ExternalLink";
 export { Kbd } from "./Kbd";
 export { duration, enter, transition } from "./motion";
 export { Surface } from "./Surface";
