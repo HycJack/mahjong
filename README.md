@@ -28,7 +28,7 @@ Windows（PowerShell）：
 irm https://huacnlee.github.io/mahjong/install.ps1 | iex
 ```
 
-脚本会从 [Releases](https://github.com/huacnlee/mahjong/releases) 下载对应安装包，核对 `SHA256SUMS` 后安装。指定版本：`MAHJONG_VERSION=v1.0.0`。
+脚本会从 [Releases](https://github.com/huacnlee/mahjong/releases) 下载对应安装包，核对 `SHA256SUMS` 后安装。指定版本：`MAHJONG_VERSION=v1.1.0`。
 
 手机：
 
