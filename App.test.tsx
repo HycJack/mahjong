@@ -75,3 +75,14 @@ test("开局可以换牌背风格", async () => {
   await app.press("id:void-tong");
   expect(app.shows("id:style-red")).toBe(false);
 });
+
+test("载入八句喊牌语音，新一局时洗牌", async () => {
+  const app = await open("./App.tsx", { width: 1280, height: 860 });
+  await app.waitUntil(() => app.audio().filter((c) => c.command === "load" && c.src.includes("voice/")).length === 8);
+  const voices = app.audio().filter((c) => c.command === "load" && c.src.includes("voice/")).map((c) => c.src.replace(/.*voice\//, ""));
+  expect(voices.sort()).toEqual(["female/gang.m4a", "female/hu.m4a", "female/peng.m4a", "female/zimo.m4a", "male/gang.m4a", "male/hu.m4a", "male/peng.m4a", "male/zimo.m4a"]);
+  await app.press("id:void-tong");
+  const before = app.audio().filter((c) => c.command === "play" && c.src.length > 0).length;
+  await app.press("text:新一局");
+  expect(app.audio().filter((c) => c.command === "play").length).toBeGreaterThan(before);
+});

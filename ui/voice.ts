@@ -24,7 +24,8 @@ export function createVoice() {
       if (!(await Sound.available())) return;
       for (const gender of ["male", "female"] as const) {
         for (const [line, src] of Object.entries(VOICE_FILES[gender])) {
-          if (src) loaded.set(`${gender}/${line}`, await Sound.load(src));
+          // 每句单独载入：一句解不开（格式不支持）不影响其他句。
+          if (src) await Sound.load(src).then((s) => loaded.set(`${gender}/${line}`, s), () => {});
         }
       }
     } catch {

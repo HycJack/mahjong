@@ -1,15 +1,23 @@
-// 四川话语音的录音文件。把录音放进 male/、female/（WAV 或 .m4a，每句不超过 5 秒），
-// 再在下面 import 并填进表里，打包时就会带上；没填的句子不出声。
+// 四川话语音的录音文件（WAV 或 .m4a，每句不超过 5 秒）。import 进来的文件会随应用一起打包。
 //
-//   import malePeng from "./male/peng.m4a";
-//   male: { peng: malePeng, ... }
+// male/：原始录音（去掉首尾静音、响度统一到 -1 dBFS、转成 AAC）。
+// female/：暂时由同一段录音升高约 4 个半音得到，不是真正的女声；有女声录音时直接替换这四个文件。
 //
 // 四句：peng 碰、gang 杠、zimo 自摸、hu 胡了（走了）。
+
+import femaleGang from "./female/gang.m4a";
+import femaleHu from "./female/hu.m4a";
+import femalePeng from "./female/peng.m4a";
+import femaleZimo from "./female/zimo.m4a";
+import maleGang from "./male/gang.m4a";
+import maleHu from "./male/hu.m4a";
+import malePeng from "./male/peng.m4a";
+import maleZimo from "./male/zimo.m4a";
 
 export type VoiceLine = "peng" | "gang" | "zimo" | "hu";
 export type VoiceGender = "male" | "female";
 
 export const VOICE_FILES: Record<VoiceGender, Partial<Record<VoiceLine, string>>> = {
-  male: {},
-  female: {},
+  male: { peng: malePeng, gang: maleGang, zimo: maleZimo, hu: maleHu },
+  female: { peng: femalePeng, gang: femaleGang, zimo: femaleZimo, hu: femaleHu },
 };
