@@ -1,4 +1,4 @@
-// 筹码：每人本金 ¥5,000，规则里的 1 分折合 ¥10（最小单位）。对局引擎只算分，这里换算成钱。
+// 筹码：每人本金 5,000，规则里的 1 分折合 10（最小单位），只显示数字，不带货币单位。对局引擎只算分，这里换算成筹码。
 
 export const STAKE = 5000;
 export const UNIT = 10;
@@ -8,12 +8,12 @@ const group = (n: number) => String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g
 /** 分 → 钱。 */
 export const yuan = (points: number) => points * UNIT;
 
-/** ¥5,000；负数是 -¥120。 */
+/** 5,000；负数是 -120（只是数字，不带货币单位）。 */
 export function money(amount: number) {
-  return `${amount < 0 ? "-" : ""}¥${group(amount)}`;
+  return `${amount < 0 ? "-" : ""}${group(amount)}`;
 }
 
-/** 带正负号的输赢：+¥30、-¥30、¥0。 */
+/** 带正负号的输赢：+30、-30、0。 */
 export function signedMoney(points: number) {
   const a = yuan(points);
   return a > 0 ? `+${money(a)}` : money(a);

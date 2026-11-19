@@ -5,10 +5,11 @@ const SHOTS: string | undefined = undefined;
 
 test("定缺后轮到你出牌，选中再打出", async () => {
   const app = await open("./App.tsx", { width: 1280, height: 860, clock: { time: 1700000000000 } });
-  await app.waitFor("text:定缺");
+  await app.waitFor("id:start");
   if (SHOTS) await app.screenshot(`${SHOTS}/dingque-light.png`);
   await app.press("id:void-tong");
-  await app.waitFor("text:定缺", { state: "gone" });
+  await app.press("id:start");
+  await app.waitFor("id:start", { state: "gone" });
   // 你是庄，先出牌。
   await app.waitFor("id:drawn");
   await app.press("id:drawn");
@@ -20,6 +21,7 @@ test("定缺后轮到你出牌，选中再打出", async () => {
 test("一局能打到结算，再来一局", async () => {
   const app = await open("./App.tsx", { width: 1280, height: 860, clock: { time: 1700000000000 } });
   await app.press("id:void-tong");
+  await app.press("id:start");
   for (let step = 0; step < 400; step++) {
     if (app.shows("id:again")) break;
     if (app.shows("id:hu")) await app.press("id:hu");
@@ -49,12 +51,13 @@ test("一局能打到结算，再来一局", async () => {
     await app.screenshot(`${SHOTS}/result-dark.png`);
   }
   await app.press("id:again");
-  await app.waitFor("text:定缺");
+  await app.waitFor("id:start");
 }, 120000);
 
 test("GitHub 入口打开项目主页", async () => {
   const app = await open("./App.tsx", { width: 1280, height: 860 });
   await app.press("id:void-tong");
+  await app.press("id:start");
   await app.press("text:GitHub");
   expect(app.openedUrls()).toContain("https://github.com/huacnlee/mojang");
   await app.press("text:规则");
@@ -73,6 +76,7 @@ test("开局可以换牌背风格", async () => {
   expect(app.shows("id:style-blue")).toBe(true);
   await app.press("id:style-red");
   await app.press("id:void-tong");
+  await app.press("id:start");
   expect(app.shows("id:style-red")).toBe(false);
 });
 
@@ -82,7 +86,20 @@ test("载入八句喊牌语音，新一局时洗牌", async () => {
   const voices = app.audio().filter((c) => c.command === "load" && c.src.includes("voice/")).map((c) => c.src.replace(/.*voice\//, ""));
   expect(voices.sort()).toEqual(["female/gang.m4a", "female/hu.m4a", "female/peng.m4a", "female/zimo.m4a", "male/gang.m4a", "male/hu.m4a", "male/peng.m4a", "male/zimo.m4a"]);
   await app.press("id:void-tong");
+  await app.press("id:start");
   const before = app.audio().filter((c) => c.command === "play" && c.src.length > 0).length;
   await app.press("text:新一局");
   expect(app.audio().filter((c) => c.command === "play").length).toBeGreaterThan(before);
+});
+
+test("开局默认选推荐的缺门，回车开始", async () => {
+  const app = await open("./App.tsx", { width: 1280, height: 860, clock: { time: 1700000000000 } });
+  await app.waitFor("id:start");
+  expect(app.texts().some((s) => s.endsWith("· 推荐"))).toBe(true);
+  // 只选缺门不会开局，要点“开始”。
+  await app.press("id:void-wan");
+  expect(app.shows("id:start")).toBe(true);
+  await app.keyboard.press("enter");
+  await app.waitFor("id:start", { state: "gone" });
+  expect(app.shows("text:缺万")).toBe(true);
 });

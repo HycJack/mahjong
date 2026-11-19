@@ -3,7 +3,7 @@
 import { cleanup, effect, keymap, Scroll, signal, Text, untracked, View } from "nsh";
 import { HUMAN, SEAT_NAMES } from "../game/engine";
 import { points } from "../game/rules";
-import { type Suit, suitName, SUITS } from "../game/tile";
+import { type Suit, suitName, suitOf, SUITS } from "../game/tile";
 import { Appear, Button, Choice, cx, Dialog, ExternalLink, Felt, StylePicker, Surface, Tile } from "../ui";
 import { VOICE_SETTINGS } from "../ui/voice";
 import { compact, REPO_URL } from "./layout";
@@ -71,45 +71,37 @@ function Center(props: { table: Table }) {
   );
 }
 
-function VoidDialog(props: { table: Table }) {
+/** 开局：看手牌、选缺门（默认推荐的那门）、选牌背和语音，然后点“开始”。 */
+function StartDialog(props: { table: Table; pick: () => Suit; onPick: (s: Suit) => void; onStart: () => void }) {
   const t = props.table;
   const open = () => t.view().phase === "dingque";
   const variants = ["wan", "tiao", "tong"] as const;
   return (
     <Dialog
       open={open()}
-      title="定缺"
-      description="选一门不要的花色：要先把这门打完，手里有它就不能胡。"
+      title={`第 ${t.round()} 局`}
+      description="先选一门不要的花色（缺门）：这门要先打完，手里有它就不能胡。选好点“开始”。"
       width="md"
+      footer={<Button label="开始" variant="primary" size="lg" shortcut="↵" testID="start" onPress={props.onStart} />}
     >
       <View class="gap-4">
         <View class="flex-row flex-wrap gap-0.5 justify-center bg-felt rounded-(--radius) p-3">
           <Each of={t.myTiles()} key="index">
-            {(tile) => <Tile tile={tile()} size="sm" />}
+            {(tile) => <Tile tile={tile()} size="sm" dim={suitOf(tile()) === props.pick()} />}
           </Each>
         </View>
-        <View class="flex-row gap-3">
-          <Each of={SUITS}>
-            {(s) => (
-              <View class="flex-1 gap-1 items-center">
-                <Button
-                  label={`缺${suitName(s())}`}
-                  variant={t.suggestedVoid() === s() ? "primary" : "outline"}
-                  size="lg"
-                  shortcut={String(s() + 1)}
-                  class="w-full"
-                  testID={`void-${variants[s()]}`}
-                  onPress={() => t.chooseVoid(s() as Suit)}
-                />
-                <Text class="text-[12px] text-muted-foreground">
-                  {`${t.suitCounts()[s()]} 张${t.suggestedVoid() === s() ? " · 推荐" : ""}`}
-                </Text>
-              </View>
-            )}
-          </Each>
-        </View>
-        <View class="h-px bg-border" />
-        <View class="gap-2 items-center">
+        <View class="gap-2">
+          <Choice
+            label="缺门"
+            value={() => variants[props.pick()]}
+            onChange={(v) => props.onPick(variants.indexOf(v) as Suit)}
+            testIDPrefix="void"
+            options={SUITS.map((s) => ({
+              id: variants[s],
+              label: `缺${suitName(s)}`,
+              hint: `${t.suitCounts()[s]} 张${t.suggestedVoid() === s ? " · 推荐" : ""}`,
+            }))}
+          />
           <StylePicker />
           <Choice
             label="语音"
@@ -173,11 +165,11 @@ export function RulesDialog(props: { open: () => boolean; onClose: () => void })
     ["牌", "只有万、条、筒，共 108 张；不能吃，只能碰和杠。"],
     ["定缺", "开局选一门不要的花色，先打完它；手里有缺门的牌不能胡。"],
     ["血战", "一家胡了就离场，其余继续，直到只剩一家或牌摸完。一炮可以多响。"],
-    ["筹码", "每人本金 ¥5,000，底注 ¥10。平胡 ¥10，每番翻倍，最多 5 番（¥320）。自摸三家都给。"],
+    ["筹码", "每人本金 5,000，底注 10。平胡 10，每番翻倍，最多 5 番（320）。自摸三家都给。"],
     ["番型", "清一色 2、对对胡 1、将对 3、七对 2、带幺九 2、金钩钓 1，每个根（四张一样）1。"],
     ["加番", "自摸、杠上开花、杠上炮、抢杠胡、海底捞月、海底炮，各 1 番。"],
-    ["刮风下雨", "暗杠每家给 ¥20，补杠每家给 ¥10，直杠由放杠的人给 ¥20。"],
-    ["流局", "查花猪：手里还有缺门的赔每家 ¥320。查大叫：没听牌的赔听牌的人他能胡的最大番。"],
+    ["刮风下雨", "暗杠每家给 20，补杠每家给 10，直杠由放杠的人给 20。"],
+    ["流局", "查花猪：手里还有缺门的赔每家 320。查大叫：没听牌的赔听牌的人他能胡的最大番。"],
   ];
   return (
     <Dialog open={props.open()} title="规则" dismissible onClose={props.onClose} width="md" footer={
@@ -214,12 +206,22 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
     untracked(() => resultOpen.set(over));
   });
 
+  // 开局要缺的那门：没选过就是推荐的那门；每局重新来。
+  const voidPick = signal<Suit | null>(null);
+  effect(() => {
+    t.round();
+    untracked(() => voidPick.set(null));
+  });
+  const pick = () => voidPick() ?? t.suggestedVoid();
+  const start = () => t.chooseVoid(pick());
+
   const blocked = () => props.rulesOpen() || resultOpen() || t.view().phase === "dingque";
   keymap.bind({
     left: () => !blocked() && t.moveSelection(-1),
     right: () => !blocked() && t.moveSelection(1),
     enter: () => {
-      if (resultOpen()) t.newRound();
+      if (t.view().phase === "dingque" && !props.rulesOpen()) start();
+      else if (resultOpen()) t.newRound();
       else if (!blocked()) t.discardSelected();
     },
     h: () => {
@@ -237,9 +239,9 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
       }
     },
     escape: () => !blocked() && t.view().claim && t.respond("pass"),
-    "1": () => t.view().phase === "dingque" && t.chooseVoid(0),
-    "2": () => t.view().phase === "dingque" && t.chooseVoid(1),
-    "3": () => t.view().phase === "dingque" && t.chooseVoid(2),
+    "1": () => t.view().phase === "dingque" && voidPick.set(0),
+    "2": () => t.view().phase === "dingque" && voidPick.set(1),
+    "3": () => t.view().phase === "dingque" && voidPick.set(2),
   });
 
   return (
@@ -281,7 +283,7 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
 
       <MyHand table={t} />
       <Banner table={t} />
-      <VoidDialog table={t} />
+      <StartDialog table={t} pick={pick} onPick={(s) => voidPick.set(s)} onStart={start} />
       <ResultDialog table={t} open={resultOpen} onClose={() => resultOpen.set(false)} />
     </Surface>
   );

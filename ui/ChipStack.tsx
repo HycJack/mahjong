@@ -11,7 +11,7 @@ const dims = {
   md: { w: 24, t: 2.6 },
 } as const;
 
-/** 一摞筹码：每 ¥1,000 一枚，最多画 6 枚；没钱了就是空的。高度固定，与旁边的金额文字一样高，筹码从底往上堆。 */
+/** 一摞筹码：每 1,000 一枚，最多画 6 枚；没钱了就是空的。高度固定，与旁边的金额文字一样高，筹码从底往上堆。 */
 export function ChipStack(props: { amount: number; size?: keyof typeof dims }) {
   const d = () => dims[props.size ?? "md"];
   const ry = () => d().w * 0.36;

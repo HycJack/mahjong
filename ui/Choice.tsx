@@ -8,6 +8,8 @@ export interface ChoiceOption<T extends string> {
   label: string;
   /** 选项左边的小预览（例如一张牌背）。 */
   preview?: JSX.Element;
+  /** 名字后面的一句补充（例如“7 张 · 推荐”）。 */
+  hint?: string;
 }
 
 /** 一组单选：前面一个标题，后面是一排可选项。←/→ 在选项间移动并选中。 */
@@ -37,6 +39,7 @@ export function Choice<T extends string>(props: {
         >
           {o.preview ? <View class="rounded-[5px] group-checked:ring-2 group-checked:ring-primary">{o.preview}</View> : null}
           <Text class="text-[13px] text-foreground group-checked:font-semibold">{o.label}</Text>
+          {o.hint ? <Text class="text-[12px] text-muted-foreground tabular-nums">{o.hint}</Text> : null}
         </Radio>
       ))}
     </RadioGroup>

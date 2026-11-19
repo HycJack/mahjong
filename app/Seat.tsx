@@ -157,7 +157,7 @@ export function River(props: { seat: () => SeatView; last: () => boolean; label:
   );
 }
 
-/** 一家面前的筹码：一摞筹码（每 ¥1,000 一枚）、余额，和本局输赢。金额变动时弹一下。 */
+/** 一家面前的筹码：一摞筹码（每 1,000 一枚）、余额，和本局输赢。金额变动时弹一下。 */
 export function Purse(props: { seat: () => SeatView; align?: "start" | "center" | "end"; compact?: boolean }) {
   const s = () => props.seat();
   const amount = () => balance(s().live);
