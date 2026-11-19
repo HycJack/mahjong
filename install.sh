@@ -1,6 +1,6 @@
 #!/bin/sh
 # 安装「血战到底」（macOS / Linux）：
-#   curl -fsSL https://raw.githubusercontent.com/huacnlee/mojang/main/install.sh | sh
+#   curl -fsSL https://huacnlee.github.io/mojang/install.sh | sh
 # 可选环境变量：
 #   MOJANG_VERSION  指定版本（如 v1.0.0），默认最新
 #   MOJANG_DIR      安装目录（Linux 默认 ~/.local/share/mojang；macOS 默认 /Applications 或 ~/Applications）

@@ -9,13 +9,13 @@
 macOS（Apple 芯片）/ Linux（x86_64，需要 GTK 4.14+）：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/huacnlee/mojang/main/install.sh | sh
+curl -fsSL https://huacnlee.github.io/mojang/install.sh | sh
 ```
 
 Windows（PowerShell）：
 
 ```powershell
-irm https://raw.githubusercontent.com/huacnlee/mojang/main/install.ps1 | iex
+irm https://huacnlee.github.io/mojang/install.ps1 | iex
 ```
 
 脚本会从 [Releases](https://github.com/huacnlee/mojang/releases) 下载对应安装包，核对 `SHA256SUMS` 后安装。指定版本：`MOJANG_VERSION=v1.0.0`。

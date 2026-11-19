@@ -1,14 +1,16 @@
-# 安装「血战到底」（Windows）：
-#   irm https://raw.githubusercontent.com/huacnlee/mojang/main/install.ps1 | iex
-# 可选：$env:MOJANG_VERSION = "v1.0.0" 指定版本；$env:MOJANG_DIR 指定安装目录。
+# Install Mojang (Sichuan Mahjong, Xue Zhan Dao Di) on Windows:
+#   irm https://huacnlee.github.io/mojang/install.ps1 | iex
+# Optional: $env:MOJANG_VERSION = "v1.0.0" picks a release; $env:MOJANG_DIR picks the install directory.
+# This file is ASCII only: it is served without a charset, which Windows PowerShell would misread.
 $ErrorActionPreference = "Stop"
 
 $Repo = "huacnlee/mojang"
-$App = "血战到底"
+# The app's Chinese name, built from code points.
+$App = -join ([char[]](0x8840, 0x6218, 0x5230, 0x5E95))
 $Asset = "mojang-windows-x86_64.zip"
 
 if ($env:PROCESSOR_ARCHITECTURE -ne "AMD64") {
-  throw "目前只提供 x86_64 的 Windows 版本"
+  throw "Only x86_64 Windows builds are available for now."
 }
 
 $Base = if ($env:MOJANG_VERSION) {
@@ -21,16 +23,16 @@ $Dest = if ($env:MOJANG_DIR) { $env:MOJANG_DIR } else { Join-Path $env:LOCALAPPD
 $Tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("mojang-" + [guid]::NewGuid())
 New-Item -ItemType Directory -Force $Tmp | Out-Null
 try {
-  Write-Host "下载 $Asset …"
+  Write-Host "Downloading $Asset ..."
   $Zip = Join-Path $Tmp $Asset
   Invoke-WebRequest -UseBasicParsing "$Base/$Asset" -OutFile $Zip
-  $Sums = (Invoke-WebRequest -UseBasicParsing "$Base/SHA256SUMS").Content
-  if ($Sums -is [byte[]]) { $Sums = [System.Text.Encoding]::UTF8.GetString($Sums) }
-  $Line = ($Sums -split "`n") | Where-Object { $_ -match "\s$([regex]::Escape($Asset))\s*$" } | Select-Object -First 1
-  if (-not $Line) { throw "校验文件里没有 $Asset" }
+  $SumsFile = Join-Path $Tmp "SHA256SUMS"
+  Invoke-WebRequest -UseBasicParsing "$Base/SHA256SUMS" -OutFile $SumsFile
+  $Line = Get-Content $SumsFile | Where-Object { $_ -match "\s$([regex]::Escape($Asset))\s*$" } | Select-Object -First 1
+  if (-not $Line) { throw "$Asset is missing from SHA256SUMS." }
   $Expected = ($Line -split "\s+")[0].ToLower()
   $Actual = (Get-FileHash $Zip -Algorithm SHA256).Hash.ToLower()
-  if ($Expected -ne $Actual) { throw "校验和不符，文件可能已损坏" }
+  if ($Expected -ne $Actual) { throw "Checksum mismatch: the download is damaged." }
 
   $Unpacked = Join-Path $Tmp "unpacked"
   Expand-Archive $Zip -DestinationPath $Unpacked -Force
@@ -42,7 +44,7 @@ try {
   Move-Item $Source $Dest
 
   $Exe = Get-ChildItem $Dest -Filter *.exe | Select-Object -First 1
-  if (-not $Exe) { throw "找不到程序文件" }
+  if (-not $Exe) { throw "The program was not found in the package." }
 
   $Shell = New-Object -ComObject WScript.Shell
   $Programs = [Environment]::GetFolderPath("Programs")
@@ -51,8 +53,8 @@ try {
   $Link.WorkingDirectory = $Dest
   $Link.Save()
 
-  Write-Host "已安装到 $Dest"
-  Write-Host "从开始菜单打开「$App」。"
+  Write-Host "Installed to $Dest"
+  Write-Host "Open it from the Start menu: $App"
 } finally {
   Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
 }
