@@ -4,12 +4,23 @@ import { titleBar } from "nsh/desktop";
 import { t } from "nsh/i18n";
 import { compact, REPO_URL, touch } from "./app/layout";
 import { createTable } from "./app/store";
+import { createUpdater } from "./app/updater";
 import { RulesDialog, TablePage } from "./app/TablePage";
 import { Badge, Button, cx, ExternalLink, Felt } from "./ui";
+import { initLanguage, language, setLanguage } from "./ui/language";
 
 function Game() {
   const table = createTable();
   const rulesOpen = signal(false);
+  const updater = createUpdater();
+  const update = updater.state;
+  const updateLabel = () => {
+    const u = update();
+    if (u.kind === "downloading") return t("update.downloading", { percent: Math.round(u.progress * 100) });
+    if (u.kind === "ready") return t("update.restart", { version: u.version });
+    if (u.kind === "link") return t("update.available", { version: u.version });
+    return "";
+  };
   const newRound = () => table.newRound();
   keymap.bind({ "mod+n": newRound, "shift+/": () => rulesOpen.set(true), m: () => table.sounds.toggle() });
 
@@ -20,26 +31,45 @@ function Game() {
       {/* 自绘标题栏：整条可拖动窗口，左右让出系统的窗口按钮。 */}
       <View
         desktop={{ windowDrag: true }}
-        style={{ paddingLeft: titleBar().left + 16, paddingRight: titleBar().right + 16 }}
+        // 四周统一 20pt 边距：红绿灯离左边 20（nsh.json 的 controlsOffset），右边按钮离右边 20。
+        style={{ paddingLeft: titleBar().left + 12, paddingRight: titleBar().right + 20 }}
         class={cx("flex-row items-center gap-3", compact() ? "h-9" : "h-12")}
       >
         <Text role="header" class="text-[15px] font-semibold text-felt-foreground">
           {t("app.name")}
         </Text>
-        <Badge label={`第 ${table.round()} 局`} variant="felt" />
+        <Badge label={t("bar.round", { n: table.round() })} variant="felt" />
         <View class="flex-1" />
-        <ExternalLink label="GitHub" tone="felt" href={REPO_URL} accessibilityLabel="在 GitHub 上查看源代码与下载" />
+        <If when={update().kind !== "idle"}>
+          <Button
+            label={updateLabel()}
+            variant="feltOutline"
+            size="sm"
+            testID="update"
+            disabled={update().kind === "downloading"}
+            onPress={() => void updater.apply()}
+          />
+        </If>
+        <ExternalLink label="GitHub" tone="felt" href={REPO_URL} accessibilityLabel={t("bar.github.a11y")} />
         <Button
-          label={table.sounds.enabled() ? "音效 开" : "音效 关"}
+          label={t(table.sounds.enabled() ? "bar.sound.on" : "bar.sound.off")}
           variant="feltGhost"
           size="sm"
           shortcut="M"
           testID="sound"
-          accessibilityLabel={table.sounds.enabled() ? "关闭音效" : "打开音效"}
+          accessibilityLabel={t(table.sounds.enabled() ? "bar.sound.turnOff" : "bar.sound.turnOn")}
           onPress={() => table.sounds.toggle()}
         />
-        <Button label="规则" variant="feltGhost" size="sm" shortcut="?" onPress={() => rulesOpen.set(true)} />
-        <Button label="新一局" variant="feltOutline" size="sm" shortcut={keymap.label("mod+n")} onPress={newRound} />
+        <Button
+          label={t("lang.switch")}
+          variant="feltGhost"
+          size="sm"
+          testID="language"
+          accessibilityLabel={t("lang.switch.a11y")}
+          onPress={() => setLanguage(language() === "zh-CN" ? "en" : "zh-CN")}
+        />
+        <Button label={t("bar.rules")} variant="feltGhost" size="sm" shortcut="?" onPress={() => rulesOpen.set(true)} />
+        <Button label={t("bar.newRound")} variant="feltOutline" size="sm" shortcut={keymap.label("mod+n")} onPress={newRound} />
       </View>
       <View class="flex-1">
         <TablePage table={table} rulesOpen={rulesOpen} onRulesClose={() => rulesOpen.set(false)} />
@@ -65,4 +95,5 @@ function App() {
   );
 }
 
+initLanguage();
 mount(App);

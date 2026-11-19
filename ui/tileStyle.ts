@@ -6,9 +6,9 @@ import { signal, Storage } from "nsh";
 export type TileStyle = "red" | "blue" | "gold";
 
 export const TILE_STYLES: { id: TileStyle; name: string }[] = [
-  { id: "red", name: "朱砂" },
-  { id: "blue", name: "宝蓝" },
-  { id: "gold", name: "琥珀" },
+  { id: "red", name: "style.red" },
+  { id: "blue", name: "style.blue" },
+  { id: "gold", name: "style.gold" },
 ];
 
 const KEY = "xuezhan.tileStyle";

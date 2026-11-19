@@ -4,7 +4,7 @@ import { expect, open, test } from "nsh/test";
 const SHOTS: string | undefined = undefined;
 
 test("定缺后轮到你出牌，选中再打出", async () => {
-  const app = await open("./App.tsx", { width: 1280, height: 860, clock: { time: 1700000000000 } });
+  const app = await open("./App.tsx", { locale: "zh-CN", width: 1280, height: 860, clock: { time: 1700000000000 } });
   await app.waitFor("id:start");
   if (SHOTS) await app.screenshot(`${SHOTS}/dingque-light.png`);
   await app.press("id:void-tong");
@@ -19,7 +19,7 @@ test("定缺后轮到你出牌，选中再打出", async () => {
 });
 
 test("一局能打到结算，再来一局", async () => {
-  const app = await open("./App.tsx", { width: 1280, height: 860, clock: { time: 1700000000000 } });
+  const app = await open("./App.tsx", { locale: "zh-CN", width: 1280, height: 860, clock: { time: 1700000000000 } });
   await app.press("id:void-tong");
   await app.press("id:start");
   for (let step = 0; step < 400; step++) {
@@ -55,7 +55,7 @@ test("一局能打到结算，再来一局", async () => {
 }, 120000);
 
 test("GitHub 入口打开项目主页", async () => {
-  const app = await open("./App.tsx", { width: 1280, height: 860 });
+  const app = await open("./App.tsx", { locale: "zh-CN", width: 1280, height: 860 });
   await app.press("id:void-tong");
   await app.press("id:start");
   await app.press("text:GitHub");
@@ -71,7 +71,7 @@ test("应用名：中文是血战到底，英文是 Mojiang", () => {
 });
 
 test("开局可以换牌背风格", async () => {
-  const app = await open("./App.tsx", { width: 1280, height: 860 });
+  const app = await open("./App.tsx", { locale: "zh-CN", width: 1280, height: 860 });
   await app.press("id:style-blue");
   expect(app.shows("id:style-blue")).toBe(true);
   await app.press("id:style-red");
@@ -81,7 +81,7 @@ test("开局可以换牌背风格", async () => {
 });
 
 test("载入八句喊牌语音，新一局时洗牌", async () => {
-  const app = await open("./App.tsx", { width: 1280, height: 860 });
+  const app = await open("./App.tsx", { locale: "zh-CN", width: 1280, height: 860 });
   await app.waitUntil(() => app.audio().filter((c) => c.command === "load" && c.src.includes("voice/")).length === 8);
   const voices = app.audio().filter((c) => c.command === "load" && c.src.includes("voice/")).map((c) => c.src.replace(/.*voice\//, ""));
   expect(voices.sort()).toEqual(["female/gang.m4a", "female/hu.m4a", "female/peng.m4a", "female/zimo.m4a", "male/gang.m4a", "male/hu.m4a", "male/peng.m4a", "male/zimo.m4a"]);
@@ -93,7 +93,7 @@ test("载入八句喊牌语音，新一局时洗牌", async () => {
 });
 
 test("开局默认选推荐的缺门，回车开始", async () => {
-  const app = await open("./App.tsx", { width: 1280, height: 860, clock: { time: 1700000000000 } });
+  const app = await open("./App.tsx", { locale: "zh-CN", width: 1280, height: 860, clock: { time: 1700000000000 } });
   await app.waitFor("id:start");
   expect(app.texts().some((s) => s.endsWith("· 推荐"))).toBe(true);
   // 只选缺门不会开局，要点“开始”。
@@ -102,4 +102,33 @@ test("开局默认选推荐的缺门，回车开始", async () => {
   await app.keyboard.press("enter");
   await app.waitFor("id:start", { state: "gone" });
   expect(app.shows("text:缺万")).toBe(true);
+});
+
+test("英文界面", async () => {
+  const app = await open("./App.tsx", { locale: "en-US", width: 1280, height: 860, clock: { time: 1700000000000 } });
+  await app.waitFor("id:start");
+  for (const text of ["Mojiang", "Round 1", "Start", "Void", "Back", "Voice", "Cinnabar", "Female"]) {
+    expect(app.texts()).toContain(text);
+  }
+  await app.press("id:void-tong");
+  await app.press("id:start");
+  await app.waitFor("id:start", { state: "gone" });
+  expect(app.texts()).toContain("No Dots");
+  expect(app.texts()).toContain("Discard your void suit first");
+  expect(app.texts().some((s) => /[一-龥]/.test(s) && s !== "中文")).toBe(false);
+});
+
+test("标题栏可以切换中英文", async () => {
+  const app = await open("./App.tsx", { locale: "en-US", width: 1280, height: 860 });
+  await app.waitFor("id:start");
+  expect(app.texts()).toContain("Start");
+  // 开局对话框里切换。
+  await app.press("id:lang-zh-CN");
+  expect(app.texts()).toContain("开始");
+  await app.press("id:start");
+  await app.waitFor("id:start", { state: "gone" });
+  // 标题栏里切换。
+  expect(app.texts()).toContain("English");
+  await app.press("id:language");
+  expect(app.texts()).toContain("New round");
 });

@@ -16,7 +16,11 @@
     },
     "titleBar": {
       "style": "hidden",
-      "height": 48
+      "height": 48,
+      "controlsOffset": {
+        "x": 20,
+        "y": 17
+      }
     }
   },
   "icon": {
@@ -40,5 +44,9 @@
       "UIRequiresFullScreen": true,
       "ITSAppUsesNonExemptEncryption": false
     }
+  },
+  "updater": {
+    "github": "huacnlee/mahjong",
+    "publicKey": "IeEVf1SX+Vdh0oKqcSEIcrBsN2av5+URTydgdGMZTz4="
   }
 }

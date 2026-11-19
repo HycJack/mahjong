@@ -1,6 +1,7 @@
 // 牌桌的状态：一局 Game、它的只读快照、玩家的选牌、播报和累计分。
 // Game 是可变对象；每次改动后 bump()，快照 view() 随之重算，界面只读快照。
 
+import { t as tr } from "nsh/i18n";
 import { announce, batch, computed, signal, Storage } from "nsh";
 import {
   canDiscard,
@@ -177,7 +178,7 @@ export function createTable(seed = Date.now()) {
         if (e.seat !== HUMAN || e.kind !== "discard") announce(e.text);
         playFor(e);
         if (e.kind === "peng" || e.kind === "gang" || e.kind === "hu" || e.kind === "zimo") {
-          banner.set({ id: e.id, seat: e.seat, text: { peng: "碰", gang: "杠", hu: "胡", zimo: "自摸" }[e.kind], kind: e.kind });
+          banner.set({ id: e.id, seat: e.seat, text: tr(`banner.${e.kind}`), kind: e.kind });
         }
       }
       if (!isActive(g.players[HUMAN])) fast.set(true);

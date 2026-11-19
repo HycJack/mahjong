@@ -2,6 +2,9 @@
 # 可选的签名密钥（在仓库 Settings → Secrets 里配置）：
 #   Android：ANDROID_KEYSTORE_BASE64、ANDROID_KEY_ALIAS、ANDROID_KEYSTORE_PASSWORD
 #   iOS：    IOS_CERT_P12_BASE64、IOS_CERT_PASSWORD、IOS_PROFILE_BASE64、IOS_SIGN_IDENTITY
+# 自动更新（必需）：UPDATE_KEY，即 keys/update.secret 的内容（nsh keygen keys/update 生成；
+#   公钥在 nsh.json 的 updater.publicKey）。Release 里附带签名的 latest.json，应用据此检查和安装更新。
+# 更新说明取自 tag 的注释（git tag -a v1.2.0 -m "..."）。
 # 没有配置时：Android 用调试签名（可直接安装），iOS 只出模拟器包和未签名的 .app。
 name: Release
 
@@ -33,6 +36,9 @@ jobs:
           nsh package --target macos -o out/macos
           mkdir -p dist
           ditto -c -k --keepParent out/macos/*.app dist/mahjong-macos-arm64.zip
+          # 给自动更新用的包：<名字>-<版本>-<系统>-<架构>。
+          V=$(jq -r .version nsh.json)
+          tar -czf "dist/Mojiang-$V-macos-aarch64.tar.gz" -C out/macos "$(basename out/macos/*.app)"
       - name: iOS simulator
         run: |
           nsh package --target ios-simulator -o out/ios-sim
@@ -105,6 +111,7 @@ jobs:
           nsh package --target linux -o out/linux
           mkdir -p dist
           cp out/linux/*.tar.gz dist/mahjong-linux-x86_64.tar.gz
+          cp out/linux/*.tar.gz "dist/Mojiang-$(jq -r .version nsh.json)-linux-x86_64.tar.gz"
       - uses: actions/upload-artifact@v4
         with: { name: linux, path: dist/* }
 
@@ -124,7 +131,10 @@ jobs:
         run: |
           nsh package --target windows -o out/windows
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item (Get-ChildItem out/windows/*.zip | Select-Object -First 1).FullName dist/mahjong-windows-x86_64.zip
+          $Zip = (Get-ChildItem out/windows/*.zip | Select-Object -First 1).FullName
+          Copy-Item $Zip dist/mahjong-windows-x86_64.zip
+          $V = (Get-Content nsh.json -Raw | ConvertFrom-Json).version
+          Copy-Item $Zip "dist/Mojiang-$V-windows-x86_64.zip"
       - uses: actions/upload-artifact@v4
         with: { name: windows, path: dist/* }
 
@@ -134,8 +144,31 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
       - uses: actions/download-artifact@v4
         with: { path: dist, merge-multiple: true }
+      - name: Install nsh
+        run: |
+          curl -fsSL https://nsh.dev/install.sh | NSH_VERSION=$NSH_VERSION sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Update manifest
+        env:
+          UPDATE_KEY: ${{ secrets.UPDATE_KEY }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then TAG="v$(jq -r .version nsh.json)"; fi
+          git fetch --tags --force >/dev/null 2>&1 || true
+          git tag -l --format='%(contents)' "$TAG" > "$RUNNER_TEMP/notes.md"
+          [ -s "$RUNNER_TEMP/notes.md" ] || echo "Mojiang $TAG" > "$RUNNER_TEMP/notes.md"
+          [ -n "$UPDATE_KEY" ] || { echo "::error::UPDATE_KEY secret is missing"; exit 1; }
+          printf '%s\n' "$UPDATE_KEY" > "$RUNNER_TEMP/update.secret"
+          nsh update-manifest dist/Mojiang-*.tar.gz dist/Mojiang-*.zip \
+            --notes "$RUNNER_TEMP/notes.md" \
+            --key "$RUNNER_TEMP/update.secret" \
+            --link "android=https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG/mahjong-android.apk" \
+            -o dist
+          rm -f "$RUNNER_TEMP/update.secret"
+          cat dist/latest.json
       - name: Checksums
         run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
       - name: Publish
@@ -144,7 +177,10 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME}"
           if [ "${GITHUB_REF_TYPE}" != "tag" ]; then TAG="v$(jq -r .version nsh.json)"; fi
-          NOTES="安装方法见 README。网页版：https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"
+          SITE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"
+          NOTES="$(cat "$RUNNER_TEMP/notes.md")
+
+          Install: see the README. Web: $SITE"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/* --clobber
           else

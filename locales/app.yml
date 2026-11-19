@@ -1,4 +1,466 @@
 _version: 2
+# 界面文字：中文（zh-CN）与英文（en）。系统语言是中文时显示中文，其余显示英文。
+# %{name} 是填进去的值。
+
 app.name:
   en: Mojiang
   zh-CN: 血战到底
+update.downloading:
+  en: "Downloading update %{percent}%"
+  zh-CN: "正在下载更新 %{percent}%"
+update.restart:
+  en: "Restart to update to %{version}"
+  zh-CN: "重启更新到 %{version}"
+update.available:
+  en: "Version %{version} available"
+  zh-CN: "有新版本 %{version}"
+lang.id:
+  en: en
+  zh-CN: zh-CN
+# 标题栏的语言切换：显示要切换到的那种语言。
+lang.switch:
+  en: 中文
+  zh-CN: English
+lang.switch.a11y:
+  en: 切换到中文
+  zh-CN: Switch to English
+
+# ---- 牌与座位 ----
+suit.0:
+  en: Characters
+  zh-CN: 万
+suit.1:
+  en: Bamboo
+  zh-CN: 条
+suit.2:
+  en: Dots
+  zh-CN: 筒
+# 一张牌的名字：%{rank} 点数，%{suit} 花色。中文用汉字点数（五筒），英文用数字（5 Dots）。
+tile.name:
+  en: "%{rank} %{suit}"
+  zh-CN: "%{numeral}%{suit}"
+seat.0:
+  en: You
+  zh-CN: 你
+seat.1:
+  en: Right
+  zh-CN: 下家
+seat.2:
+  en: Across
+  zh-CN: 对家
+seat.3:
+  en: Left
+  zh-CN: 上家
+list.sep:
+  en: ", "
+  zh-CN: 、
+
+# ---- 标题栏 ----
+bar.round:
+  en: "Round %{n}"
+  zh-CN: "第 %{n} 局"
+bar.github.a11y:
+  en: View the source code and downloads on GitHub
+  zh-CN: 在 GitHub 上查看源代码与下载
+bar.sound.on:
+  en: Sound on
+  zh-CN: 音效 开
+bar.sound.off:
+  en: Sound off
+  zh-CN: 音效 关
+bar.sound.turnOff:
+  en: Turn sound off
+  zh-CN: 关闭音效
+bar.sound.turnOn:
+  en: Turn sound on
+  zh-CN: 打开音效
+bar.rules:
+  en: Rules
+  zh-CN: 规则
+bar.newRound:
+  en: New round
+  zh-CN: 新一局
+
+# ---- 座位 ----
+seat.thinking:
+  en: Thinking
+  zh-CN: 思考中
+seat.dealer:
+  en: Dealer
+  zh-CN: 庄
+seat.dealer.a11y:
+  en: Dealer
+  zh-CN: 庄家
+seat.void:
+  en: "No %{suit}"
+  zh-CN: "缺%{suit}"
+seat.void.a11y:
+  en: "Void suit: %{suit}"
+  zh-CN: "定缺%{suit}"
+seat.win.selfDraw:
+  en: Self-drawn
+  zh-CN: 自摸
+seat.win.discard:
+  en: Won
+  zh-CN: 胡
+seat.win.fan:
+  en: "%{n} fan"
+  zh-CN: "%{n} 番"
+seat.win.plain:
+  en: Basic hand
+  zh-CN: 平胡
+seat.win.a11y:
+  en: "Winner no. %{order}, %{fan} fan, %{amount}"
+  zh-CN: "第%{order}个胡牌，%{fan}番，%{amount}"
+seat.hand.a11y:
+  en: "%{n} tiles in hand"
+  zh-CN: "%{n} 张手牌"
+seat.purse.a11y:
+  en: "%{name}: %{amount} chips, %{delta} this round"
+  zh-CN: "%{name}的筹码 %{amount}，本局%{delta}"
+seat.purse.round:
+  en: "This round %{delta}"
+  zh-CN: "本局 %{delta}"
+meld.peng:
+  en: Pung
+  zh-CN: 碰
+meld.minggang:
+  en: Exposed kong
+  zh-CN: 明杠
+meld.bugang:
+  en: Added kong
+  zh-CN: 补杠
+meld.angang:
+  en: Concealed kong
+  zh-CN: 暗杠
+river.0:
+  en: Your discards
+  zh-CN: 你的牌河
+river.1:
+  en: Right's discards
+  zh-CN: 下家的牌河
+river.2:
+  en: Across's discards
+  zh-CN: 对家的牌河
+river.3:
+  en: Left's discards
+  zh-CN: 上家的牌河
+
+# ---- 你的手牌 ----
+hand.a11y:
+  en: Your hand
+  zh-CN: 你的手牌
+hand.discarded:
+  en: "%{seat} discarded %{tile}"
+  zh-CN: "%{seat}打出%{tile}"
+hand.kongTile:
+  en: "Kong %{tile}"
+  zh-CN: "杠%{tile}"
+hand.won:
+  en: You have won; the other three play on
+  zh-CN: 你已胡牌，其余三家继续血战
+hand.mustVoid:
+  en: Discard your void suit first
+  zh-CN: 先把缺门的牌打完
+hand.after.waits:
+  en: "Discard %{tile} to wait on %{waits}"
+  zh-CN: "打出%{tile}后听：%{waits}"
+hand.after.none:
+  en: "Discarding %{tile} leaves you not ready"
+  zh-CN: "打出%{tile}后不听牌"
+hand.yourTurn:
+  en: "Your turn: tap a tile to select it, tap again to discard"
+  zh-CN: 轮到你出牌：点一下选中，再点一下打出
+hand.waits:
+  en: "Waiting on %{waits}"
+  zh-CN: "听：%{waits}"
+hand.key.select:
+  en: Select
+  zh-CN: 选牌
+hand.key.discard:
+  en: Discard
+  zh-CN: 打出
+call.hu:
+  en: Win
+  zh-CN: 胡
+call.gang:
+  en: Kong
+  zh-CN: 杠
+call.peng:
+  en: Pung
+  zh-CN: 碰
+call.pass:
+  en: Pass
+  zh-CN: 过
+call.zimo:
+  en: Self-drawn
+  zh-CN: 自摸
+
+# ---- 牌桌中央 ----
+table.info.a11y:
+  en: Table
+  zh-CN: 牌桌信息
+table.tilesLeft:
+  en: left
+  zh-CN: 张
+
+# ---- 开局 ----
+start.description:
+  en: "Pick a suit to give up (your void suit): you discard it first and cannot win while you hold any. Then press Start."
+  zh-CN: 先选一门不要的花色（缺门）：这门要先打完，手里有它就不能胡。选好点“开始”。
+start.void:
+  en: Void
+  zh-CN: 缺门
+start.option:
+  en: "%{suit}"
+  zh-CN: "缺%{suit}"
+start.count:
+  en: "%{n} tiles"
+  zh-CN: "%{n} 张"
+start.suggested:
+  en: suggested
+  zh-CN: 推荐
+start.back:
+  en: Back
+  zh-CN: 牌背
+start.voice:
+  en: Voice
+  zh-CN: 语音
+start.language:
+  en: Language
+  zh-CN: 语言
+start.go:
+  en: Start
+  zh-CN: 开始
+style.red:
+  en: Cinnabar
+  zh-CN: 朱砂
+style.blue:
+  en: Sapphire
+  zh-CN: 宝蓝
+style.gold:
+  en: Amber
+  zh-CN: 琥珀
+voice.male:
+  en: Male
+  zh-CN: 男声
+voice.female:
+  en: Female
+  zh-CN: 女声
+voice.off:
+  en: "Off"
+  zh-CN: 关闭
+
+# ---- 结算 ----
+result.won:
+  en: "You won %{amount} this round"
+  zh-CN: "本局赢 %{amount}"
+result.lost:
+  en: "You lost %{amount} this round"
+  zh-CN: "本局输 %{amount}"
+result.even:
+  en: You broke even this round
+  zh-CN: 本局不输不赢
+result.ended:
+  en: "Round %{n} is over"
+  zh-CN: "第 %{n} 局结束"
+result.winLine:
+  en: "Winner no. %{order} · %{how} · %{names} · %{fan} fan %{amount}"
+  zh-CN: "第 %{order} 个胡 · %{how} · %{names} · %{fan} 番 %{amount}"
+result.selfDraw:
+  en: self-drawn
+  zh-CN: 自摸
+result.from:
+  en: "off %{seat}'s discard"
+  zh-CN: "点炮：%{seat}"
+result.noWin:
+  en: Did not win
+  zh-CN: 未胡
+result.sep:
+  en: "; "
+  zh-CN: ；
+result.balance:
+  en: "Balance %{amount}"
+  zh-CN: "余 %{amount}"
+result.view:
+  en: View table
+  zh-CN: 看牌桌
+result.again:
+  en: Play again
+  zh-CN: 再来一局
+result.a11y:
+  en: Settlement
+  zh-CN: 结算
+
+# ---- 规则 ----
+rules.title:
+  en: Rules
+  zh-CN: 规则
+rules.tiles.h:
+  en: Tiles
+  zh-CN: 牌
+rules.tiles:
+  en: "Characters, bamboo and dots only, 108 tiles in all. No chow: only pung and kong."
+  zh-CN: 只有万、条、筒，共 108 张；不能吃，只能碰和杠。
+rules.void.h:
+  en: Void suit
+  zh-CN: 定缺
+rules.void:
+  en: "At the start each player gives up one suit and must discard it first; you cannot win while holding it."
+  zh-CN: 开局选一门不要的花色，先打完它；手里有缺门的牌不能胡。
+rules.blood.h:
+  en: Blood battle
+  zh-CN: 血战
+rules.blood:
+  en: "A player who wins leaves the table and the rest play on until one is left or the wall runs out. One discard can win for several players."
+  zh-CN: 一家胡了就离场，其余继续，直到只剩一家或牌摸完。一炮可以多响。
+rules.chips.h:
+  en: Chips
+  zh-CN: 筹码
+rules.chips:
+  en: "Everyone starts with 5,000; the base stake is 10. A basic hand pays 10 and each fan doubles it, up to 5 fan (320). A self-drawn win is paid by all three."
+  zh-CN: 每人本金 5,000，底注 10。平胡 10，每番翻倍，最多 5 番（320）。自摸三家都给。
+rules.fan.h:
+  en: Fan
+  zh-CN: 番型
+rules.fan:
+  en: "Pure suit 2, all pungs 1, all 2-5-8 pungs 3, seven pairs 2, terminals in every set 2, golden hook 1, and 1 for each root (four of a kind)."
+  zh-CN: 清一色 2、对对胡 1、将对 3、七对 2、带幺九 2、金钩钓 1，每个根（四张一样）1。
+rules.bonus.h:
+  en: Bonus fan
+  zh-CN: 加番
+rules.bonus:
+  en: "Self-drawn, win after a kong, win on a kong discard, robbing a kong, last tile drawn and last tile discarded: 1 fan each."
+  zh-CN: 自摸、杠上开花、杠上炮、抢杠胡、海底捞月、海底炮，各 1 番。
+rules.wind.h:
+  en: Wind and rain
+  zh-CN: 刮风下雨
+rules.wind:
+  en: "A concealed kong takes 20 from each player, an added kong 10 from each, and an exposed kong 20 from whoever discarded the tile."
+  zh-CN: 暗杠每家给 20，补杠每家给 10，直杠由放杠的人给 20。
+rules.draw.h:
+  en: Drawn round
+  zh-CN: 流局
+rules.draw:
+  en: "Anyone still holding their void suit pays every player 320. Anyone not ready pays each ready player the most they could have won."
+  zh-CN: 查花猪：手里还有缺门的赔每家 320。查大叫：没听牌的赔听牌的人他能胡的最大番。
+rules.source:
+  en: Source and downloads
+  zh-CN: 源代码与下载
+rules.ok:
+  en: Got it
+  zh-CN: 知道了
+
+# ---- 对局里的事（牌桌中央和读屏播报）----
+event.dealer:
+  en: "%{seat} deal"
+  zh-CN: "%{seat}坐庄"
+event.voids:
+  en: "%{list}"
+  zh-CN: "%{list}"
+event.voidOne:
+  en: "%{seat}: %{suit}"
+  zh-CN: "%{seat}缺%{suit}"
+event.voidSep:
+  en: ", "
+  zh-CN: ，
+event.zimo:
+  en: "%{seat} self-drew %{tile}, %{fan} fan: %{names}"
+  zh-CN: "%{seat}自摸%{tile}，%{fan} 番：%{names}"
+event.hu:
+  en: "%{seat} won on %{from}'s %{tile}, %{fan} fan: %{names}"
+  zh-CN: "%{seat}胡%{from}的%{tile}，%{fan} 番：%{names}"
+event.namesSep:
+  en: " · "
+  zh-CN: " · "
+event.threeWon:
+  en: Three players have won; the round is over
+  zh-CN: 三家已胡，本局结束
+event.bugang:
+  en: "%{seat} added a kong of %{tile}"
+  zh-CN: "%{seat}补杠%{tile}"
+event.angang:
+  en: "%{seat} declared a concealed kong"
+  zh-CN: "%{seat}暗杠"
+event.discard:
+  en: "%{seat} discarded %{tile}"
+  zh-CN: "%{seat}打出%{tile}"
+event.wallEmpty:
+  en: The wall is empty; checking who is ready
+  zh-CN: 牌摸完了，流局查叫
+event.gang:
+  en: "%{seat} konged %{tile}"
+  zh-CN: "%{seat}杠%{tile}"
+event.peng:
+  en: "%{seat} punged %{tile}"
+  zh-CN: "%{seat}碰%{tile}"
+banner.peng:
+  en: Pung
+  zh-CN: 碰
+banner.gang:
+  en: Kong
+  zh-CN: 杠
+banner.hu:
+  en: Win
+  zh-CN: 胡
+banner.zimo:
+  en: Self-drawn
+  zh-CN: 自摸
+
+# ---- 结算说明 ----
+note.pig:
+  en: Still held the void suit; pays every player the maximum
+  zh-CN: 花猪，按最大番赔其他每家
+note.ready:
+  en: "Ready, best hand %{fan} fan"
+  zh-CN: "听牌，最大 %{fan} 番"
+note.notReady:
+  en: Not ready
+  zh-CN: 没听牌
+note.notReadyPays:
+  en: Not ready; pays the ready players
+  zh-CN: 没听牌，赔给听牌的人
+
+# ---- 番名（规则引擎里用中文名作为编号）----
+fan.平胡:
+  en: Basic hand
+  zh-CN: 平胡
+fan.七对:
+  en: Seven pairs
+  zh-CN: 七对
+fan.将对:
+  en: All 2-5-8 pungs
+  zh-CN: 将对
+fan.对对胡:
+  en: All pungs
+  zh-CN: 对对胡
+fan.金钩钓:
+  en: Golden hook
+  zh-CN: 金钩钓
+fan.带幺九:
+  en: Terminals in every set
+  zh-CN: 带幺九
+fan.清一色:
+  en: Pure suit
+  zh-CN: 清一色
+fan.根:
+  en: "Root ×%{n}"
+  zh-CN: "根×%{n}"
+fan.自摸:
+  en: Self-drawn
+  zh-CN: 自摸
+fan.杠上开花:
+  en: Win after a kong
+  zh-CN: 杠上开花
+fan.杠上炮:
+  en: Win on a kong discard
+  zh-CN: 杠上炮
+fan.抢杠胡:
+  en: Robbing a kong
+  zh-CN: 抢杠胡
+fan.海底捞月:
+  en: Last tile drawn
+  zh-CN: 海底捞月
+fan.海底炮:
+  en: Last tile discarded
+  zh-CN: 海底炮

@@ -1,10 +1,12 @@
 // 牌桌：四家座位、牌河、中央信息、播报，以及定缺和结算对话框。
 
 import { cleanup, effect, keymap, Scroll, signal, Text, untracked, View } from "nsh";
-import { HUMAN, SEAT_NAMES } from "../game/engine";
-import { points } from "../game/rules";
+import { t as tr } from "nsh/i18n";
+import { HUMAN, seatName } from "../game/engine";
+import { fanName, points } from "../game/rules";
 import { type Suit, suitName, suitOf, SUITS } from "../game/tile";
 import { Appear, Button, Choice, cx, Dialog, ExternalLink, StylePicker, Surface, Tile } from "../ui";
+import { language, setLanguage } from "../ui/language";
 import { VOICE_SETTINGS } from "../ui/voice";
 import { compact, REPO_URL } from "./layout";
 import { balance, money, signedMoney, yuan } from "./money";
@@ -41,7 +43,7 @@ function Banner(props: { table: Table }) {
                   {b().text}
                 </Text>
               </View>
-              <Text class="text-[13px] text-felt-foreground">{SEAT_NAMES[b().seat]}</Text>
+              <Text class="text-[13px] text-felt-foreground">{seatName(b().seat)}</Text>
             </Appear>
           );
         }}
@@ -58,11 +60,11 @@ function Center(props: { table: Table }) {
     return e.length > 0 ? e[e.length - 1].text : "";
   };
   return (
-    <Surface variant="inset" class={cx("items-center", compact() ? "w-[180px] px-3 py-1.5 gap-0.5" : "w-[220px] px-4 py-3 gap-1.5")} accessibilityLabel="牌桌信息">
-      <Text class="text-[12px] text-felt-muted">{`第 ${t.round()} 局`}</Text>
+    <Surface variant="inset" class={cx("items-center", compact() ? "w-[180px] px-3 py-1.5 gap-0.5" : "w-[220px] px-4 py-3 gap-1.5")} accessibilityLabel={tr("table.info.a11y")}>
+      <Text class="text-[12px] text-felt-muted">{tr("bar.round", { n: t.round() })}</Text>
       <View class="flex-row items-baseline gap-1">
         <Text class={cx(compact() ? "text-[22px]" : "text-[30px]", "font-semibold text-felt-foreground tabular-nums leading-none")}>{String(t.view().wall)}</Text>
-        <Text class="text-[12px] text-felt-muted">张</Text>
+        <Text class="text-[12px] text-felt-muted">{tr("table.tilesLeft")}</Text>
       </View>
       <Text class={cx("line-clamp-2 text-[12px] text-felt-foreground text-center", compact() ? "min-h-[16px]" : "min-h-[32px]")}>
         {last()}
@@ -79,10 +81,10 @@ function StartDialog(props: { table: Table; pick: () => Suit; onPick: (s: Suit) 
   return (
     <Dialog
       open={open()}
-      title={`第 ${t.round()} 局`}
-      description="先选一门不要的花色（缺门）：这门要先打完，手里有它就不能胡。选好点“开始”。"
+      title={tr("bar.round", { n: t.round() })}
+      description={tr("start.description")}
       width="md"
-      footer={<Button label="开始" variant="primary" size="lg" shortcut="↵" testID="start" onPress={props.onStart} />}
+      footer={<Button label={tr("start.go")} variant="primary" size="lg" shortcut="↵" testID="start" onPress={props.onStart} />}
     >
       <View class="gap-4">
         <View class="flex-row flex-wrap gap-0.5 justify-center bg-felt rounded-(--radius) p-3">
@@ -92,23 +94,33 @@ function StartDialog(props: { table: Table; pick: () => Suit; onPick: (s: Suit) 
         </View>
         <View class="gap-2">
           <Choice
-            label="缺门"
+            label={tr("start.void")}
             value={() => variants[props.pick()]}
             onChange={(v) => props.onPick(variants.indexOf(v) as Suit)}
             testIDPrefix="void"
             options={SUITS.map((s) => ({
               id: variants[s],
-              label: `缺${suitName(s)}`,
-              hint: `${t.suitCounts()[s]} 张${t.suggestedVoid() === s ? " · 推荐" : ""}`,
+              label: tr("start.option", { suit: suitName(s) }),
+              hint: `${tr("start.count", { n: t.suitCounts()[s] })}${t.suggestedVoid() === s ? ` · ${tr("start.suggested")}` : ""}`,
             }))}
           />
           <StylePicker />
           <Choice
-            label="语音"
+            label={tr("start.voice")}
             value={t.voice.setting}
             onChange={(v) => t.voice.set(v)}
             testIDPrefix="voice"
-            options={VOICE_SETTINGS.map((v) => ({ id: v.id, label: v.name }))}
+            options={VOICE_SETTINGS.map((v) => ({ id: v.id, label: tr(v.name) }))}
+          />
+          <Choice
+            label={tr("start.language")}
+            value={language}
+            onChange={setLanguage}
+            testIDPrefix="lang"
+            options={[
+              { id: "en", label: "English" },
+              { id: "zh-CN", label: "中文" },
+            ]}
           />
         </View>
       </View>
@@ -122,36 +134,42 @@ function ResultDialog(props: { table: Table; open: () => boolean; onClose: () =>
     t.view().seats.map((s) => {
       const notes = t.view().settlements.filter((n) => n.seat === s.seat).map((n) => n.note);
       const win = s.win
-        ? `第 ${s.win.order} 个胡 · ${s.win.from === null ? "自摸" : `点炮：${SEAT_NAMES[s.win.from]}`} · ${s.win.score.names.join(" ")} · ${s.win.score.fan} 番 ${money(yuan(points(s.win.score.fan)))}`
+        ? tr("result.winLine", {
+            order: s.win.order,
+            how: s.win.from === null ? tr("result.selfDraw") : tr("result.from", { seat: seatName(s.win.from) }),
+            names: s.win.score.names.map(fanName).join(" "),
+            fan: s.win.score.fan,
+            amount: money(yuan(points(s.win.score.fan))),
+          })
         : "";
-      return { seat: s.seat, name: s.name, detail: [win, ...notes].filter(Boolean).join("；") || "未胡", delta: s.delta, total: s.total };
+      return { seat: s.seat, name: s.name, detail: [win, ...notes].filter(Boolean).join(tr("result.sep")) || tr("result.noWin"), delta: s.delta, total: s.total };
     });
   const mine = () => t.view().seats[HUMAN].delta;
   return (
     <Dialog
       open={props.open()}
-      title={mine() > 0 ? `本局赢 ${money(yuan(mine()))}` : mine() < 0 ? `本局输 ${money(yuan(-mine()))}` : "本局不输不赢"}
-      description={`第 ${t.round()} 局结束`}
+      title={mine() > 0 ? tr("result.won", { amount: money(yuan(mine())) }) : mine() < 0 ? tr("result.lost", { amount: money(yuan(-mine())) }) : tr("result.even")}
+      description={tr("result.ended", { n: t.round() })}
       width="md"
       dismissible
       onClose={props.onClose}
       footer={
         <>
-          <Button label="看牌桌" variant="ghost" onPress={props.onClose} />
-          <Button label="再来一局" variant="primary" shortcut="↵" testID="again" onPress={() => t.newRound()} />
+          <Button label={tr("result.view")} variant="ghost" onPress={props.onClose} />
+          <Button label={tr("result.again")} variant="primary" shortcut="↵" testID="again" onPress={() => t.newRound()} />
         </>
       }
     >
-      <View class="gap-0 border border-border rounded-(--radius)" accessibilityLabel="结算">
+      <View class="gap-0 border border-border rounded-(--radius)" accessibilityLabel={tr("result.a11y")}>
         <Each of={rows()} key="index">
           {(r, i) => (
             <View class={cx("flex-row items-center gap-3 px-3 py-2.5", i() > 0 && "border-t border-border")}>
-              <Text class="w-10 text-[13px] font-semibold text-popover-foreground">{r().name}</Text>
+              <Text class="w-14 text-[13px] font-semibold text-popover-foreground">{r().name}</Text>
               <Text class="flex-1 text-[12px] text-muted-foreground">{r().detail}</Text>
               <Text class={cx("w-16 text-right text-[14px] font-semibold tabular-nums", r().delta > 0 ? "text-gain" : r().delta < 0 ? "text-loss" : "text-muted-foreground")}>
                 {signedMoney(r().delta)}
               </Text>
-              <Text class="w-[88px] text-right text-[12px] text-muted-foreground tabular-nums">{`余 ${money(balance(r().total))}`}</Text>
+              <Text class="w-[112px] text-right text-[12px] text-muted-foreground tabular-nums">{tr("result.balance", { amount: money(balance(r().total)) })}</Text>
             </View>
           )}
         </Each>
@@ -161,30 +179,21 @@ function ResultDialog(props: { table: Table; open: () => boolean; onClose: () =>
 }
 
 export function RulesDialog(props: { open: () => boolean; onClose: () => void }) {
-  const lines = [
-    ["牌", "只有万、条、筒，共 108 张；不能吃，只能碰和杠。"],
-    ["定缺", "开局选一门不要的花色，先打完它；手里有缺门的牌不能胡。"],
-    ["血战", "一家胡了就离场，其余继续，直到只剩一家或牌摸完。一炮可以多响。"],
-    ["筹码", "每人本金 5,000，底注 10。平胡 10，每番翻倍，最多 5 番（320）。自摸三家都给。"],
-    ["番型", "清一色 2、对对胡 1、将对 3、七对 2、带幺九 2、金钩钓 1，每个根（四张一样）1。"],
-    ["加番", "自摸、杠上开花、杠上炮、抢杠胡、海底捞月、海底炮，各 1 番。"],
-    ["刮风下雨", "暗杠每家给 20，补杠每家给 10，直杠由放杠的人给 20。"],
-    ["流局", "查花猪：手里还有缺门的赔每家 320。查大叫：没听牌的赔听牌的人他能胡的最大番。"],
-  ];
+  const KEYS = ["tiles", "void", "blood", "chips", "fan", "bonus", "wind", "draw"];
   return (
-    <Dialog open={props.open()} title="规则" dismissible onClose={props.onClose} width="md" footer={
+    <Dialog open={props.open()} title={tr("rules.title")} dismissible onClose={props.onClose} width="md" footer={
         <>
-          <ExternalLink label="源代码与下载" href={REPO_URL} tone="muted" class="mr-auto" />
-          <Button label="知道了" variant="primary" onPress={props.onClose} />
+          <ExternalLink label={tr("rules.source")} href={REPO_URL} tone="muted" class="mr-auto" />
+          <Button label={tr("rules.ok")} variant="primary" onPress={props.onClose} />
         </>
       }>
       <Scroll class={compact() ? "max-h-[180px]" : "max-h-[420px]"}>
       <View class="gap-2.5">
-        <Each of={lines}>
-          {(l) => (
+        <Each of={KEYS}>
+          {(k) => (
             <View class="flex-row gap-3">
-              <Text class="w-16 text-[13px] font-semibold text-popover-foreground">{l()[0]}</Text>
-              <Text class="flex-1 text-[13px] text-muted-foreground">{l()[1]}</Text>
+              <Text class="w-[92px] text-[13px] font-semibold text-popover-foreground">{tr(`rules.${k()}.h`)}</Text>
+              <Text class="flex-1 text-[13px] text-muted-foreground">{tr(`rules.${k()}`)}</Text>
             </View>
           )}
         </Each>
@@ -245,7 +254,7 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
   });
 
   return (
-    <View class={cx("flex-1", compact() ? "px-3 py-2 gap-1.5" : "px-4 pb-4 pt-1 gap-3")}>
+    <View class={cx("flex-1", compact() ? "px-3 py-2 gap-1.5" : "px-5 pb-5 pt-1 gap-3")}>
       {/* 对家 */}
       <View class={cx("items-center", compact() ? "flex-row justify-center gap-3" : "gap-2")}>
         <SeatHeader seat={seat(2)} dealer={t.view().dealer === 2} align="center" />
@@ -259,16 +268,16 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
           <SeatHeader seat={seat(3)} dealer={t.view().dealer === 3} />
           <OtherHand seat={seat(3)} size={compact() ? "xs" : "sm"} summary />
           <Purse seat={seat(3)} align="end" compact={compact()} />
-          <River seat={seat(3)} last={lastFrom(3)} label="上家的牌河" size={compact() ? "xs" : "sm"} class={cx("flex-1", compact() ? "mt-1" : "mt-2")} />
+          <River seat={seat(3)} last={lastFrom(3)} label={tr("river.3")} size={compact() ? "xs" : "sm"} class={cx("flex-1", compact() ? "mt-1" : "mt-2")} />
         </View>
 
         {/* 中央 */}
         <View class={cx("flex-1 items-center", compact() ? "gap-1" : "gap-3")}>
-          <River seat={seat(2)} last={lastFrom(2)} label="对家的牌河" size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[30px]" : "w-[460px] min-h-[94px]")} />
+          <River seat={seat(2)} last={lastFrom(2)} label={tr("river.2")} size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[30px]" : "w-[460px] min-h-[94px]")} />
           <View class="flex-1 justify-center">
             <Center table={t} />
           </View>
-          <River seat={seat(HUMAN)} last={lastFrom(HUMAN)} label="你的牌河" size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[30px]" : "w-[460px] min-h-[94px]")} />
+          <River seat={seat(HUMAN)} last={lastFrom(HUMAN)} label={tr("river.0")} size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[30px]" : "w-[460px] min-h-[94px]")} />
         </View>
 
         {/* 下家 */}
@@ -276,7 +285,7 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
           <SeatHeader seat={seat(1)} dealer={t.view().dealer === 1} />
           <OtherHand seat={seat(1)} size={compact() ? "xs" : "sm"} summary />
           <Purse seat={seat(1)} align="start" compact={compact()} />
-          <River seat={seat(1)} last={lastFrom(1)} label="下家的牌河" size={compact() ? "xs" : "sm"} class={cx("flex-1 justify-end", compact() ? "mt-1" : "mt-2")} />
+          <River seat={seat(1)} last={lastFrom(1)} label={tr("river.1")} size={compact() ? "xs" : "sm"} class={cx("flex-1 justify-end", compact() ? "mt-1" : "mt-2")} />
         </View>
       </View>
 

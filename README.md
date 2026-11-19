@@ -1,67 +1,84 @@
 # Mojiang
 
-用 [NSH](https://nsh.dev)（纯 TSX）写的四川麻将“血战到底”：你和三家电脑对战。
+**English** · [中文](README.zh-CN.md)
 
-**在线玩：** https://huacnlee.github.io/mahjong/
+Sichuan Mahjong in the "Bloody Battle" style (血战到底, *xuè zhàn dào dǐ*), written in pure TSX with [NSH](https://nsh.dev). You play against three computer players.
 
-![牌桌（深色）](docs/screenshots/table-dark.jpg)
+**Play online:** https://huacnlee.github.io/mahjong/
 
-| 开局：选缺门、牌背和语音，再点“开始” | 一局结算 |
+![The table (dark)](docs/screenshots/en/table-dark.jpg)
+
+| Start: pick your void suit, tile back, voice and language, then press Start | End of a round |
 |---|---|
-| ![开局](docs/screenshots/start-light.jpg) | ![结算](docs/screenshots/result-light.jpg) |
+| ![Start](docs/screenshots/en/start-light.jpg) | ![Result](docs/screenshots/en/result-light.jpg) |
 
-iPhone 横屏：
+On iPhone, in landscape:
 
-![iPhone 上的牌桌](docs/screenshots/iphone.jpg)
+![The table on iPhone](docs/screenshots/iphone.jpg)
 
-## 安装
+## Install
 
-macOS（Apple 芯片）/ Linux（x86_64，需要 GTK 4.14+）：
+macOS (Apple silicon) / Linux (x86_64, GTK 4.14+):
 
 ```sh
 curl -fsSL https://huacnlee.github.io/mahjong/install.sh | sh
 ```
 
-Windows（PowerShell）：
+Windows (PowerShell):
 
 ```powershell
 irm https://huacnlee.github.io/mahjong/install.ps1 | iex
 ```
 
-脚本会从 [Releases](https://github.com/huacnlee/mahjong/releases) 下载对应安装包，核对 `SHA256SUMS` 后安装。指定版本：`MAHJONG_VERSION=v1.1.0`。
+The script downloads the package for your system from [Releases](https://github.com/huacnlee/mahjong/releases), checks it against `SHA256SUMS` and installs it. Pick a version with `MAHJONG_VERSION=v1.1.0`.
 
-手机：
+Phones:
 
-- **Android**：在 Releases 下载 `mahjong-android.apk` 安装。
-- **iOS**：Releases 里有模拟器包 `mahjong-ios-simulator.zip`；装到真机需要开发者签名（见 `.github/workflows/release.yml` 里的 Secrets 说明）。
+- **Android**: download `mahjong-android.apk` from Releases and install it.
+- **iOS**: Releases has a simulator build, `mahjong-ios-simulator.zip`; a device needs a developer signature (see the Secrets in `.github/workflows/release.yml`).
 
-## 玩法
+## How to play
 
-每人本金 5,000 筹码，底注 10。开局先选缺门（默认是推荐的那门，`1` `2` `3` 切换），也可以选牌背风格（朱砂、宝蓝、琥珀）和语音，然后点“开始”（`Enter`）。点一张牌选中、再点一下打出（或 `←` `→` 选牌、`Enter` 打出）。别人打出你能要的牌时出现 胡 `H` / 杠 `G` / 碰 `P` / 过 `Esc`。`⌘N` 新一局，`?` 规则，`M` 开关音效。手机上横屏玩。
+Each player starts with 5,000 chips; the base stake is 10. Each round starts by choosing a void suit, the suit you give up (the suggested one is picked; switch with `1` `2` `3`). You can also choose the tile back (Cinnabar, Sapphire, Amber), the voice and the language. Then press Start (`Enter`).
 
-## 特点
+Tap a tile to select it and tap it again to discard it (or select with `←` `→` and discard with `Enter`). When someone discards a tile you can use, Win `H` / Kong `G` / Pung `P` / Pass `Esc` appear. `⌘N` starts a new round, `?` shows the rules and `M` toggles sound. On phones, play in landscape.
 
-- 牌面全部用 Canvas 绘制：象牙色牌面、玉色侧边、高光；牌背三种风格（朱砂、宝蓝、琥珀）。
-- 每家面前一摞筹码和余额，刮风下雨当场结算。
-- 弹簧动画：摸牌、出牌、碰杠、胡牌摊牌；鼠标划过手牌有连续的波浪。
-- 牌桌声音：洗牌、摸牌、出牌的“啪”、碰杠的碰撞声，都是代码合成的。
-- 四川话喊牌：碰、杠、自摸、走了，男声、女声两套；三家电脑下家男、对家女、上家男。
-- 浅色、深色主题；手机横屏紧凑布局。
+The rules in short: there are no honor tiles, only Characters, Bamboo and Dots. You must play out your void suit before you can win. A round doesn't end at the first win: winners leave and the rest play on until one player is left or the wall runs out.
 
-## 开发
+## Features
+
+- Every tile is drawn on a Canvas: ivory faces, jade sides and highlights; three tile backs (Cinnabar, Sapphire, Amber).
+- A chip stack and balance in front of every player; kongs pay out on the spot.
+- Spring motion for drawing, discarding, pungs and kongs and the final reveal; a ripple runs across your hand under the pointer.
+- Table sounds (shuffling, drawing, the clack of a discard, pungs and kongs), all synthesized in code.
+- Calls in Sichuan dialect (pung, kong, self-drawn win, "I'm out") in a male and a female voice.
+- Light and dark themes; a compact landscape layout on phones.
+- English and Chinese, switched from the title bar; the web version starts in English.
+- Desktop auto-update: checks for a new version at launch, downloads it in the background, and "Restart to update" installs it. Phones link to the download page.
+
+## Development
 
 ```sh
-nsh run                  # 运行
-nsh test                 # 规则与界面测试
-nsh run ui/Gallery.tsx   # 查看牌面与控件
-nsh test assets/icon-src/icon.test.tsx --target macos && scripts/icon-macos.sh   # 重新生成图标
+nsh run                  # run it
+nsh test                 # rule and UI tests
+nsh run ui/Gallery.tsx   # tiles and controls
+nsh test assets/icon-src/icon.test.tsx --target macos && scripts/icon-macos.sh   # regenerate the icon
 ```
 
-- `game/`：规则、对局状态机、电脑打法（不依赖界面）
-- `app/`：牌桌页面、布局档位与状态
-- `ui/`：牌面、按钮、对话框、动效与音效
-- `DESIGN.md`：设计规范、动效清单与音效清单
+- `game/`: rules, the round's state machine and the computer players (no UI)
+- `app/`: the table page, layout breakpoints, state and the updater
+- `ui/`: tiles, buttons, dialogs, motion, sound and language
+- `locales/app.yml`: English and Chinese strings
+- `DESIGN.md`: design rules, motion and sound inventories (in Chinese)
 
-## 发布
+## Releasing
 
-推送到 `main` 自动发布网页版；打 `v*` tag 自动打包 macOS、Windows、Linux、iOS、Android 并创建 Release。
+Pushing to `main` deploys the web version. Pushing a `v*` tag builds macOS, Windows, Linux, iOS and Android and creates a Release.
+
+To release, raise `version` in `nsh.json` and push an annotated tag; its message is the release notes shown in the app:
+
+```sh
+git tag -a v1.2.0 -m "What changed…" && git push origin v1.2.0
+```
+
+The Release includes a signed `latest.json` that installed apps update from. The signing key is `keys/update.secret` (not in git; back it up), stored on GitHub as the `UPDATE_KEY` secret; the public key is `updater.publicKey` in `nsh.json`.

@@ -22,8 +22,8 @@ export function Choice<T extends string>(props: {
   class?: string;
 }) {
   return (
-    <RadioGroup accessibilityLabel={props.label} class={cx("flex-row items-center gap-2", props.class)}>
-      <Text class="w-9 text-[13px] text-muted-foreground">{props.label}</Text>
+    <RadioGroup accessibilityLabel={props.label} class={cx("flex-row flex-wrap items-center gap-2", props.class)}>
+      <Text class="min-w-11 text-[13px] text-muted-foreground">{props.label}</Text>
       {props.options.map((o) => (
         <Radio
           checked={props.value() === o.id}

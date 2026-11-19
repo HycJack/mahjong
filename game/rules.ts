@@ -1,5 +1,6 @@
 // 规则：胡牌判定、番型、向听数和听牌。只看牌，不看对局。
 
+import { t } from "nsh/i18n";
 import { type Counts, isTerminal, rankOf, type Suit, SUITS, suitOf, type Tile } from "./tile";
 
 /** 番数封顶。 */
@@ -122,6 +123,12 @@ export function isWin(hand: Counts, melds: readonly Meld[], voidSuit: Suit | nul
   if (voidSuit !== null && hasSuit(hand, voidSuit)) return false;
   if (total(hand) + 3 * melds.length !== 14) return false;
   return isSevenPairs(hand, melds) || isStandard(hand);
+}
+
+/** 番名按界面语言显示；规则里用中文名作为编号（“根×2”带个数）。 */
+export function fanName(name: string): string {
+  const root = /^根×(\d+)$/.exec(name);
+  return root ? t("fan.根", { n: root[1] }) : t(`fan.${name}`);
 }
 
 /** 胡牌的番型。`hand` 已含胡的那张；不成胡返回 `null`。 */

@@ -1,5 +1,6 @@
 // 一家的座位：名字、缺门、分数、状态，以及副露和手牌。
 
+import { t as tr } from "nsh/i18n";
 import { createMotion, effect, Text, untracked, View } from "nsh";
 import { isGang, type Meld, points } from "../game/rules";
 import { suitName, type Suit, type Tile as TileId } from "../game/tile";
@@ -14,7 +15,7 @@ export const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 /** 思考中的小圆点，只在思考时呼吸。 */
 function Thinking() {
   const m = createMotion({ enter: "glow", iterations: "infinite", duration: 1200 });
-  return <View accessibilityLabel="思考中" class="w-2 h-2 rounded-full bg-seat-turn" style={m.style} />;
+  return <View accessibilityLabel={tr("seat.thinking")} class="w-2 h-2 rounded-full bg-seat-turn" style={m.style} />;
 }
 
 /** 座位的标题行。 */
@@ -34,23 +35,23 @@ export function SeatHeader(props: { seat: () => SeatView; dealer: boolean; align
         <Badge label={s().name} variant={s().isTurn ? "turn" : "felt"} strong />
       </View>
       <If when={props.dealer}>
-        <Badge label="庄" variant="felt" accessibilityLabel="庄家" />
+        <Badge label={tr("seat.dealer")} variant="felt" accessibilityLabel={tr("seat.dealer.a11y")} />
       </If>
       <If when={s().voidSuit !== null}>
         <Badge
-          label={`缺${suitName(s().voidSuit as Suit)}`}
+          label={tr("seat.void", { suit: suitName(s().voidSuit as Suit) })}
           variant={voidVariant[s().voidSuit ?? 0]}
-          accessibilityLabel={`定缺${suitName(s().voidSuit as Suit)}`}
+          accessibilityLabel={tr("seat.void.a11y", { suit: suitName(s().voidSuit as Suit) })}
         />
       </If>
       <If when={s().win}>
         {(win) => (
           <Appear motion="pop">
             <Badge
-              label={`${win().from === null ? "自摸" : "胡"} · ${win().score.fan > 0 ? `${win().score.fan} 番` : "平胡"}`}
+              label={`${tr(win().from === null ? "seat.win.selfDraw" : "seat.win.discard")} · ${win().score.fan > 0 ? tr("seat.win.fan", { n: win().score.fan }) : tr("seat.win.plain")}`}
               variant="win"
               strong
-              accessibilityLabel={`第${win().order}个胡牌，${win().score.fan}番，${money(yuan(points(win().score.fan)))}`}
+              accessibilityLabel={tr("seat.win.a11y", { order: win().order, fan: win().score.fan, amount: money(yuan(points(win().score.fan))) })}
             />
           </Appear>
         )}
@@ -82,7 +83,7 @@ export function MeldGroup(props: { meld: () => Meld; size: TileSize }) {
 }
 
 function meldLabel(m: Meld) {
-  return { peng: "碰", minggang: "明杠", bugang: "补杠", angang: "暗杠" }[m.kind];
+  return tr(`meld.${m.kind}`);
 }
 
 /** 别人的手：没胡是牌背，胡了摊开（胡的那张高亮）。 */
@@ -105,12 +106,12 @@ export function OtherHand(props: { seat: () => SeatView; size: TileSize; summary
         when={s().hand.length > 0}
         else={
           stacked() ? (
-            <View class="flex-row items-center gap-1" accessibilityLabel={`${s().handCount} 张手牌`}>
+            <View class="flex-row items-center gap-1" accessibilityLabel={tr("seat.hand.a11y", { n: s().handCount })}>
               <TileBack size={props.size} />
               <Text class="text-[12px] text-felt-muted tabular-nums">{`×${s().handCount}`}</Text>
             </View>
           ) : (
-            <View class="flex-row gap-px" accessibilityLabel={`${s().handCount} 张手牌`}>
+            <View class="flex-row gap-px" accessibilityLabel={tr("seat.hand.a11y", { n: s().handCount })}>
               <Each of={Array.from({ length: s().handCount }, (_, i) => i)} key="index">
                 {() => <TileBack size={props.size} />}
               </Each>
@@ -171,7 +172,7 @@ export function Purse(props: { seat: () => SeatView; align?: "start" | "center" 
   const deltaClass = () => (s().delta > 0 ? "text-gain" : s().delta < 0 ? "text-loss" : "text-felt-muted");
   return (
     <View
-      accessibilityLabel={`${s().name}的筹码 ${money(amount())}，本局${signedMoney(s().delta)}`}
+      accessibilityLabel={tr("seat.purse.a11y", { name: s().name, amount: money(amount()), delta: signedMoney(s().delta) })}
       class={cx(
         "flex-row items-center gap-2",
         props.align === "center" && "self-center",
@@ -191,7 +192,7 @@ export function Purse(props: { seat: () => SeatView; align?: "start" | "center" 
           {money(amount())}
         </Text>
         <Text class={cx("tabular-nums leading-none", props.compact ? "text-[11px]" : "text-[12px]", deltaClass())}>
-          {`本局 ${signedMoney(s().delta)}`}
+          {tr("seat.purse.round", { delta: signedMoney(s().delta) })}
         </Text>
       </View>
     </View>

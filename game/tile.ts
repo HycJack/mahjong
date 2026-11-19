@@ -1,13 +1,14 @@
 // 牌：四川麻将只用万、条、筒三门，每门 1–9，每张 4 枚，共 108 张。
 // 一张牌是 0..26 的整数：花色 × 9 + (点数 − 1)。
 
+import { t } from "nsh/i18n";
+
 export type Tile = number;
 export type Suit = 0 | 1 | 2;
 /** 每种牌的枚数，按牌的编号排列，长 27。 */
 export type Counts = number[];
 
 export const SUITS: readonly Suit[] = [0, 1, 2];
-const SUIT_NAMES = ["万", "条", "筒"] as const;
 const NUMERALS = ["一", "二", "三", "四", "五", "六", "七", "八", "九"] as const;
 
 export const tile = (suit: Suit, rank: number): Tile => suit * 9 + rank - 1;
@@ -15,11 +16,12 @@ export const suitOf = (t: Tile): Suit => Math.floor(t / 9) as Suit;
 /** 点数，1–9。 */
 export const rankOf = (t: Tile): number => (t % 9) + 1;
 export const isTerminal = (t: Tile) => rankOf(t) === 1 || rankOf(t) === 9;
-export const suitName = (s: Suit) => SUIT_NAMES[s];
-/** 中文点数：一 … 九。 */
+/** 花色名，按界面语言：万 / Characters。 */
+export const suitName = (s: Suit) => t(`suit.${s}`);
+/** 中文点数：一 … 九（画在牌面上，不随语言变）。 */
 export const numeral = (t: Tile) => NUMERALS[rankOf(t) - 1];
-/** "五筒"。 */
-export const tileName = (t: Tile) => `${numeral(t)}${suitName(suitOf(t))}`;
+/** 牌名，按界面语言："五筒" / "5 Dots"。 */
+export const tileName = (x: Tile) => t("tile.name", { rank: rankOf(x), numeral: numeral(x), suit: suitName(suitOf(x)) });
 
 /** 一整副牌，未洗。 */
 export function fullSet(): Tile[] {

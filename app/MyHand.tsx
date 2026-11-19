@@ -1,7 +1,8 @@
 // 玩家自己的区域：操作条、听牌提示、副露和手牌。
 
+import { t as tr } from "nsh/i18n";
 import { Text, View } from "nsh";
-import { HUMAN } from "../game/engine";
+import { HUMAN, seatName } from "../game/engine";
 import { tileName } from "../game/tile";
 import { Appear, Button, createHandWave, cx, HandTile, Kbd, tileSizes } from "../ui";
 import { compact, touch } from "./layout";
@@ -18,18 +19,18 @@ export function ActionBar(props: { table: Table }) {
         {(c) => (
           <Appear motion="rise" class="flex-row items-center gap-2">
             <Text class="text-[13px] text-felt-foreground mr-1">
-              {`${["你", "下家", "对家", "上家"][c().from]}打出${tileName(c().tile)}`}
+              {tr("hand.discarded", { seat: seatName(c().from), tile: tileName(c().tile) })}
             </Text>
             <If when={c().options.hu}>
-              <Button label="胡" variant="win" size="lg" shortcut="H" testID="hu" onPress={() => t.respond("hu")} />
+              <Button label={tr("call.hu")} variant="win" size="lg" shortcut="H" testID="hu" onPress={() => t.respond("hu")} />
             </If>
             <If when={c().options.gang}>
-              <Button label="杠" variant="call" size="lg" shortcut="G" testID="gang" onPress={() => t.respond("gang")} />
+              <Button label={tr("call.gang")} variant="call" size="lg" shortcut="G" testID="gang" onPress={() => t.respond("gang")} />
             </If>
             <If when={c().options.peng}>
-              <Button label="碰" variant="call" size="lg" shortcut="P" testID="peng" onPress={() => t.respond("peng")} />
+              <Button label={tr("call.peng")} variant="call" size="lg" shortcut="P" testID="peng" onPress={() => t.respond("peng")} />
             </If>
-            <Button label="过" variant="call" size="lg" shortcut="Esc" testID="pass" onPress={() => t.respond("pass")} />
+            <Button label={tr("call.pass")} variant="call" size="lg" shortcut="Esc" testID="pass" onPress={() => t.respond("pass")} />
           </Appear>
         )}
       </If>
@@ -37,12 +38,12 @@ export function ActionBar(props: { table: Table }) {
         {(o) => (
           <Appear motion="rise" class="flex-row items-center gap-2">
             <If when={o().zimo}>
-              <Button label="自摸" variant="win" size="lg" shortcut="H" testID="zimo" onPress={() => t.zimo()} />
+              <Button label={tr("call.zimo")} variant="win" size="lg" shortcut="H" testID="zimo" onPress={() => t.zimo()} />
             </If>
             <Each of={o().gangs}>
               {(g) => (
                 <Button
-                  label={`杠${tileName(g())}`}
+                  label={tr("hand.kongTile", { tile: tileName(g()) })}
                   variant="call"
                   size="lg"
                   shortcut="G"
@@ -64,17 +65,19 @@ function Hint(props: { table: Table }) {
   const me = () => t.view().seats[HUMAN];
   const text = () => {
     const v = t.view();
-    if (me().win) return "你已胡牌，其余三家继续血战";
+    if (me().win) return tr("hand.won");
     if (v.phase === "over" || v.phase === "dingque") return "";
     const h = t.waitHint();
     if (v.turn) {
-      if (v.mustPlayVoid) return "先把缺门的牌打完";
+      if (v.mustPlayVoid) return tr("hand.mustVoid");
       if (h && h.after !== null) {
-        return h.waits.length > 0 ? `打出${tileName(h.after)}后听：${h.waits.map(tileName).join("、")}` : `打出${tileName(h.after)}后不听牌`;
+        return h.waits.length > 0
+          ? tr("hand.after.waits", { tile: tileName(h.after), waits: h.waits.map(tileName).join(tr("list.sep")) })
+          : tr("hand.after.none", { tile: tileName(h.after) });
       }
-      return "轮到你出牌：点一下选中，再点一下打出";
+      return tr("hand.yourTurn");
     }
-    if (h && h.waits.length > 0) return `听：${h.waits.map(tileName).join("、")}`;
+    if (h && h.waits.length > 0) return tr("hand.waits", { waits: h.waits.map(tileName).join(tr("list.sep")) });
     return "";
   };
   return (
@@ -86,9 +89,9 @@ function Hint(props: { table: Table }) {
         <View class="flex-row items-center gap-1">
           <Kbd label="←" />
           <Kbd label="→" />
-          <Text class="text-[12px] text-felt-muted">选牌</Text>
+          <Text class="text-[12px] text-felt-muted">{tr("hand.key.select")}</Text>
           <Kbd label="Enter" />
-          <Text class="text-[12px] text-felt-muted">打出</Text>
+          <Text class="text-[12px] text-felt-muted">{tr("hand.key.discard")}</Text>
         </View>
       </If>
     </View>
@@ -141,7 +144,7 @@ export function MyHand(props: { table: Table }) {
           </View>
         </If>
         <View
-          accessibilityLabel="你的手牌"
+          accessibilityLabel={tr("hand.a11y")}
           class={cx("flex-row items-end gap-1", compact() ? "pt-2" : "pt-3")}
           onMouseEnter={wave.onMouseEnter}
           onMouseMove={wave.onMouseMove}

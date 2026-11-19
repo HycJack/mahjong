@@ -6,9 +6,9 @@ import { VOICE_FILES, type VoiceGender, type VoiceLine } from "../assets/voice";
 
 export type VoiceSetting = VoiceGender | "off";
 export const VOICE_SETTINGS: { id: VoiceSetting; name: string }[] = [
-  { id: "male", name: "男声" },
-  { id: "female", name: "女声" },
-  { id: "off", name: "关闭" },
+  { id: "male", name: "voice.male" },
+  { id: "female", name: "voice.female" },
+  { id: "off", name: "voice.off" },
 ];
 
 const KEY = "xuezhan.voice";

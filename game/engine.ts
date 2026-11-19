@@ -3,14 +3,15 @@
 // 座位 0 是玩家，1 下家，2 对家，3 上家；出牌顺序 0 → 1 → 2 → 3。
 // 一家胡了就离场，其余继续，直到只剩一家没胡或者牌墙摸完。
 
+import { t as tr } from "nsh/i18n";
 import * as ai from "./ai";
-import { bestWaitScore, evaluate, isWin, MAX_FAN, type Meld, meldSize, points, type Score, type WinContext } from "./rules";
+import { bestWaitScore, evaluate, fanName, isWin, MAX_FAN, type Meld, meldSize, points, type Score, type WinContext } from "./rules";
 import { type Counts, countsOf, fullSet, Rng, type Suit, suitName, suitOf, type Tile, tileName, sortTiles } from "./tile";
 
 export const HUMAN = 0;
 export const SEATS = 4;
-export const SEAT_NAMES = ["你", "下家", "对家", "上家"] as const;
-export const seatName = (seat: number) => SEAT_NAMES[seat];
+/** 座位名，按界面语言：你 / 下家 / 对家 / 上家。 */
+export const seatName = (seat: number) => tr(`seat.${seat}`);
 
 /** 一家胡牌的记录。 */
 export interface Win {
@@ -167,7 +168,7 @@ export class Game {
     });
     this.wall = wall;
     this.dealer = dealer;
-    this.say(dealer, "info", `${seatName(dealer)}坐庄`);
+    this.say(dealer, "info", tr("event.dealer", { seat: seatName(dealer) }));
   }
 
   get isOver() {
@@ -208,7 +209,10 @@ export class Game {
     if (this.phase.kind !== "dingque") return;
     this.players[HUMAN].voidSuit = suit;
     for (const p of this.players) arrange(p);
-    const line = this.players.map((p, s) => `${seatName(s)}缺${p.voidSuit === null ? "" : suitName(p.voidSuit)}`).join("，");
+    const list = this.players
+      .map((p, s) => tr("event.voidOne", { seat: seatName(s), suit: p.voidSuit === null ? "" : suitName(p.voidSuit) }))
+      .join(tr("event.voidSep"));
+    const line = tr("event.voids", { list });
     this.say(HUMAN, "info", line);
     this.drew = true;
     this.phase = { kind: "act", seat: this.dealer };
@@ -260,13 +264,14 @@ export class Game {
 
   private recordWin(seat: number, t: Tile, score: Score, from: number | null) {
     this.wins++;
-    const how = from === null ? "自摸" : `胡${seatName(from)}的`;
-    this.say(seat, from === null ? "zimo" : "hu", `${seatName(seat)}${how}${tileName(t)}，${score.fan} 番：${score.names.join(" · ")}`);
+    const args = { seat: seatName(seat), tile: tileName(t), fan: score.fan, names: score.names.map(fanName).join(tr("event.namesSep")) };
+    if (from === null) this.say(seat, "zimo", tr("event.zimo", args));
+    else this.say(seat, "hu", tr("event.hu", { ...args, from: seatName(from) }));
     this.players[seat].win = { order: this.wins, tile: t, score, from };
   }
 
   private continueAfterWin(lastWinner: number) {
-    if (this.activeCount() <= 1) this.finish("三家已胡，本局结束");
+    if (this.activeCount() <= 1) this.finish(tr("event.threeWon"));
     else this.draw(this.nextActive(lastWinner));
   }
 
@@ -279,7 +284,7 @@ export class Game {
       // 补杠：先问有没有人抢杠胡。
       take(p, t, 1);
       meld.kind = "bugang";
-      this.say(seat, "gang", `${seatName(seat)}补杠${tileName(t)}`);
+      this.say(seat, "gang", tr("event.bugang", { seat: seatName(seat), tile: tileName(t) }));
       const options = this.players.map((_, s) => (s === seat ? NO_OPTIONS : { ...NO_OPTIONS, hu: this.canHuWith(s, t) }));
       if (options.some((o) => o.hu)) {
         this.phase = { kind: "claim", claim: { tile: t, from: seat, source: "bugang", options, responses: [null, null, null, null] } };
@@ -289,7 +294,7 @@ export class Game {
     } else {
       take(p, t, 4);
       p.melds.push({ kind: "angang", tile: t, from: null });
-      this.say(seat, "gang", `${seatName(seat)}暗杠`);
+      this.say(seat, "gang", tr("event.angang", { seat: seatName(seat) }));
       this.payEach(seat, 2);
       this.drawAfterGang(seat);
     }
@@ -326,7 +331,7 @@ export class Game {
     take(p, t, 1);
     p.discards.push(t);
     this.lastDiscard = { seat, tile: t };
-    this.say(seat, "discard", `${seatName(seat)}打出${tileName(t)}`);
+    this.say(seat, "discard", tr("event.discard", { seat: seatName(seat), tile: tileName(t) }));
 
     const options = this.players.map((q, s): ClaimOptions => {
       if (s === seat || !isActive(q) || q.voidSuit === suitOf(t)) return NO_OPTIONS;
@@ -354,7 +359,7 @@ export class Game {
   private draw(seat: number) {
     const t = this.wall.pop();
     if (t === undefined) {
-      this.finish("牌摸完了，流局查叫");
+      this.finish(tr("event.wallEmpty"));
       return;
     }
     const p = this.players[seat];
@@ -435,12 +440,12 @@ export class Game {
     take(p, t, gang ? 3 : 2);
     p.melds.push({ kind: gang ? "minggang" : "peng", tile: t, from });
     if (gang) {
-      this.say(taker, "gang", `${seatName(taker)}杠${tileName(t)}`);
+      this.say(taker, "gang", tr("event.gang", { seat: seatName(taker), tile: tileName(t) }));
       this.players[from].delta -= 2;
       p.delta += 2;
       this.drawAfterGang(taker);
     } else {
-      this.say(taker, "peng", `${seatName(taker)}碰${tileName(t)}`);
+      this.say(taker, "peng", tr("event.peng", { seat: seatName(taker), tile: tileName(t) }));
       this.drew = false;
       this.afterGang = false;
       this.phase = { kind: "act", seat: taker };
@@ -466,7 +471,7 @@ export class Game {
         this.players[pig].delta -= max;
         this.players[s].delta += max;
       }
-      this.settlements.push({ seat: pig, note: "花猪，按最大番赔其他每家" });
+      this.settlements.push({ seat: pig, note: tr("note.pig") });
     }
     const ready: { seat: number; score: Score }[] = [];
     for (const s of active) {
@@ -475,7 +480,7 @@ export class Game {
       const score = bestWaitScore(countsOfPlayer(p), p.melds, p.voidSuit);
       if (score) ready.push({ seat: s, score });
     }
-    for (const r of ready) this.settlements.push({ seat: r.seat, note: `听牌，最大 ${r.score.fan} 番` });
+    for (const r of ready) this.settlements.push({ seat: r.seat, note: tr("note.ready", { fan: r.score.fan }) });
     for (const s of active) {
       if (pigs.includes(s) || ready.some((r) => r.seat === s)) continue;
       for (const r of ready) {
@@ -483,7 +488,7 @@ export class Game {
         this.players[s].delta -= pts;
         this.players[r.seat].delta += pts;
       }
-      this.settlements.push({ seat: s, note: ready.length === 0 ? "没听牌" : "没听牌，赔给听牌的人" });
+      this.settlements.push({ seat: s, note: tr(ready.length === 0 ? "note.notReady" : "note.notReadyPays") });
     }
   }
 
