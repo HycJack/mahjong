@@ -6,9 +6,13 @@
 
 ![牌桌（深色）](docs/screenshots/table-dark.jpg)
 
-| 开局定缺，选牌背和语音 | 一局结算 |
+| 开局：选缺门、牌背和语音，再点“开始” | 一局结算 |
 |---|---|
-| ![定缺](docs/screenshots/start-light.jpg) | ![结算](docs/screenshots/result-light.jpg) |
+| ![开局](docs/screenshots/start-light.jpg) | ![结算](docs/screenshots/result-light.jpg) |
+
+iPhone 横屏：
+
+![iPhone 上的牌桌](docs/screenshots/iphone.jpg)
 
 ## 安装
 
