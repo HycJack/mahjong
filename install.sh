@@ -56,7 +56,7 @@ case "$(uname -s)" in
     ditto -x -k "$TMP/$ASSET" "$TMP/unpacked"
     rm -rf "$DEST/$APP.app"
     mv "$TMP/unpacked/$APP.app" "$DEST/$APP.app"
-    xattr -dr com.apple.quarantine "$DEST/$APP.app" 2>/dev/null || true
+    xattr -r -d com.apple.quarantine "$DEST/$APP.app" >/dev/null 2>&1 || true
     say "已安装到 $DEST/$APP.app"
     say "打开：open \"$DEST/$APP.app\""
     ;;
