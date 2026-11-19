@@ -19,7 +19,14 @@
       "height": 48
     }
   },
-  "icon": "assets/icon.png",
+  "icon": {
+    "macos": "assets/icon-macos.png",
+    "ios": "assets/icon.png",
+    "android": "assets/icon.png",
+    "windows": "assets/icon.png",
+    "linux": "assets/icon.png",
+    "web": "assets/icon.png"
+  },
   "ios": {
     "infoPlist": {
       "UISupportedInterfaceOrientations": [

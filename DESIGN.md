@@ -115,3 +115,7 @@
 | 胡牌摊开 | `enter.reveal` 逐张翻起，每张错开 25ms；胡字徽标 `enter.pop` | 立即出现 |
 | 定缺 / 结算 / 规则对话框 | 遮罩淡入；内容 `enter.dialog` 弹簧缩放 | 只淡入 |
 | 拖拽、加载、流式 | 无（游戏不需要） | — |
+
+## 图标（`assets/icon-src/`）
+
+正面是一条（孔雀），后面斜压一张朱砂牌背，铺在绒布上，与牌桌同一套绘制。`assets/icon.png` 铺满 1024×1024、不透明，给 iOS、Android、Windows、Linux、Web；`assets/icon-macos.png` 按 macOS 规范把图案缩到 824×824、圆角 185、带投影，放在透明画布中央。两张都由 `scripts/icon-macos.sh` 从截图生成。
