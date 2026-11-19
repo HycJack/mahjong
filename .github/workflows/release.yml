@@ -36,9 +36,8 @@ jobs:
           nsh package --target macos -o out/macos
           mkdir -p dist
           ditto -c -k --keepParent out/macos/*.app dist/mahjong-macos-arm64.zip
-          # 给自动更新用的包：<名字>-<版本>-<系统>-<架构>。
-          V=$(jq -r .version nsh.json)
-          tar -czf "dist/Mojiang-$V-macos-aarch64.tar.gz" -C out/macos "$(basename out/macos/*.app)"
+          # nsh package 同时生成自动更新用的包：<名字>-<版本>-<系统>-<架构>。
+          cp out/macos/*-macos-aarch64.tar.gz dist/
       - name: iOS simulator
         run: |
           nsh package --target ios-simulator -o out/ios-sim
@@ -110,8 +109,8 @@ jobs:
         run: |
           nsh package --target linux -o out/linux
           mkdir -p dist
-          cp out/linux/*.tar.gz dist/mahjong-linux-x86_64.tar.gz
-          cp out/linux/*.tar.gz "dist/Mojiang-$(jq -r .version nsh.json)-linux-x86_64.tar.gz"
+          cp out/linux/Mojiang.tar.gz dist/mahjong-linux-x86_64.tar.gz
+          cp out/linux/*-linux-x86_64.tar.gz dist/
       - uses: actions/upload-artifact@v4
         with: { name: linux, path: dist/* }
 
@@ -131,10 +130,8 @@ jobs:
         run: |
           nsh package --target windows -o out/windows
           New-Item -ItemType Directory -Force dist | Out-Null
-          $Zip = (Get-ChildItem out/windows/*.zip | Select-Object -First 1).FullName
-          Copy-Item $Zip dist/mahjong-windows-x86_64.zip
-          $V = (Get-Content nsh.json -Raw | ConvertFrom-Json).version
-          Copy-Item $Zip "dist/Mojiang-$V-windows-x86_64.zip"
+          Copy-Item out/windows/Mojiang.zip dist/mahjong-windows-x86_64.zip
+          Copy-Item out/windows/*-windows-x86_64.zip dist/
       - uses: actions/upload-artifact@v4
         with: { name: windows, path: dist/* }
 
