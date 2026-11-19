@@ -1,3 +1,5 @@
 .nsh/
 target/
 assets/icon-src/raw.png
+.DS_Store
+.DS_Store
