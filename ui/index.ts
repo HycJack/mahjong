@@ -4,6 +4,8 @@ export { Button, type ButtonSize, type ButtonVariant } from "./Button";
 export { cx } from "./cx";
 export { Dialog } from "./Dialog";
 export { ExternalLink } from "./ExternalLink";
+export { ChipStack, CHIP_VALUE } from "./ChipStack";
+export { Choice, type ChoiceOption } from "./Choice";
 export { Felt } from "./Felt";
 export { StylePicker } from "./StylePicker";
 export { Kbd } from "./Kbd";

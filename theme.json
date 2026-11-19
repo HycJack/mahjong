@@ -55,7 +55,11 @@
       "back-blue-edge": "#173a73",
       "back-gold-hi": "#f3c25a",
       "back-gold": "#d9941f",
-      "back-gold-edge": "#94600e"
+      "back-gold-edge": "#94600e",
+      "chip": "#dcaa35",
+      "chip-hi": "#f7da82",
+      "chip-edge": "#8f620f",
+      "chip-stripe": "#fff7df"
     },
     "dark": {
       "background": "#161513",
@@ -108,7 +112,11 @@
       "back-blue-edge": "#132f5c",
       "back-gold-hi": "#d9a947",
       "back-gold": "#b97c19",
-      "back-gold-edge": "#7a4f0b"
+      "back-gold-edge": "#7a4f0b",
+      "chip": "#c79a2e",
+      "chip-hi": "#e9c76c",
+      "chip-edge": "#73500c",
+      "chip-stripe": "#f6ecd0"
     }
   }
 }

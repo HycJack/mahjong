@@ -3,8 +3,8 @@
 import { createMotion, effect, Text, untracked, View } from "nsh";
 import { isGang, type Meld, points } from "../game/rules";
 import { suitName, type Suit, type Tile as TileId } from "../game/tile";
-import { Appear, Badge, type BadgeVariant, cx, nudge, Tile, TileBack, type TileSize } from "../ui";
-import { money, signedMoney, yuan } from "./money";
+import { Appear, Badge, type BadgeVariant, ChipStack, cx, nudge, Tile, TileBack, type TileSize } from "../ui";
+import { balance, money, signedMoney, yuan } from "./money";
 import type { SeatView } from "./store";
 
 const voidVariant: BadgeVariant[] = ["wan", "tiao", "tong"];
@@ -20,20 +20,13 @@ function Thinking() {
 /** 座位的标题行。 */
 export function SeatHeader(props: { seat: () => SeatView; dealer: boolean; align?: "start" | "center" }) {
   const s = () => props.seat();
-  // 轮到这家时名字弹一下；分数变动时数字弹一下。
+  // 轮到这家时名字弹一下。
   const turnPop = createMotion();
-  const scorePop = createMotion();
   let wasTurn = false;
   effect(() => {
     const turn = s().isTurn;
     if (turn && !wasTurn) untracked(() => void turnPop.play(nudge.bump));
     wasTurn = turn;
-  });
-  let lastDelta = 0;
-  effect(() => {
-    const d = s().delta;
-    if (d !== lastDelta) untracked(() => void scorePop.play(nudge.bump));
-    lastDelta = d;
   });
   return (
     <View class={cx("flex-row items-center gap-1.5", props.align === "center" && "justify-center")}>
@@ -65,16 +58,6 @@ export function SeatHeader(props: { seat: () => SeatView; dealer: boolean; align
       <If when={s().thinking}>
         <Thinking />
       </If>
-      <Text
-        style={scorePop.style}
-        accessibilityLabel={`本局${signedMoney(s().delta)}`}
-        class={cx(
-          "text-[13px] font-semibold tabular-nums ml-1",
-          s().delta > 0 ? "text-gain" : s().delta < 0 ? "text-loss" : "text-felt-muted",
-        )}
-      >
-        {signedMoney(s().delta)}
-      </Text>
     </View>
   );
 }
@@ -170,6 +153,47 @@ export function River(props: { seat: () => SeatView; last: () => boolean; label:
           </Appear>
         )}
       </Each>
+    </View>
+  );
+}
+
+/** 一家面前的筹码：一摞筹码（每 ¥1,000 一枚）、余额，和本局输赢。金额变动时弹一下。 */
+export function Purse(props: { seat: () => SeatView; align?: "start" | "center" | "end"; compact?: boolean }) {
+  const s = () => props.seat();
+  const amount = () => balance(s().live);
+  const pop = createMotion();
+  let last = amount();
+  effect(() => {
+    const a = amount();
+    if (a !== last) untracked(() => void pop.play(nudge.bump));
+    last = a;
+  });
+  const deltaClass = () => (s().delta > 0 ? "text-gain" : s().delta < 0 ? "text-loss" : "text-felt-muted");
+  return (
+    <View
+      accessibilityLabel={`${s().name}的筹码 ${money(amount())}，本局${signedMoney(s().delta)}`}
+      class={cx(
+        "flex-row items-center gap-2",
+        props.align === "center" && "self-center",
+        props.align === "end" && "self-end flex-row-reverse",
+      )}
+    >
+      <ChipStack amount={amount()} size={props.compact ? "sm" : "md"} />
+      <View class={cx("gap-0.5 pb-0.5", props.align === "end" && "items-end")}>
+        <Text
+          style={pop.style}
+          class={cx(
+            "font-bold tabular-nums leading-none",
+            props.compact ? "text-[13px]" : "text-[18px]",
+            amount() <= 0 ? "text-loss" : "text-felt-foreground",
+          )}
+        >
+          {money(amount())}
+        </Text>
+        <Text class={cx("tabular-nums leading-none", props.compact ? "text-[11px]" : "text-[12px]", deltaClass())}>
+          {`本局 ${signedMoney(s().delta)}`}
+        </Text>
+      </View>
     </View>
   );
 }

@@ -20,6 +20,7 @@ import {
 import { type Meld, points, waits } from "../game/rules";
 import { countsOf, type Suit, SUITS, suitOf, type Tile } from "../game/tile";
 import { createSounds } from "../ui/sound";
+import { createVoice } from "../ui/voice";
 
 export interface SeatView {
   seat: number;
@@ -34,6 +35,8 @@ export interface SeatView {
   win: Win | null;
   delta: number;
   total: number;
+  /** 此刻的累计分：局中途（刮风下雨）就算上本局已有的输赢，结算后就是累计。 */
+  live: number;
   isTurn: boolean;
   thinking: boolean;
 }
@@ -75,6 +78,7 @@ export function createTable(seed = Date.now()) {
   let timer: ReturnType<typeof setTimeout> | null = null;
   let settled = false;
   const sounds = createSounds();
+  const voice = createVoice();
   let lastDrawSound = 0;
   let claimWasOpen = false;
 
@@ -114,6 +118,7 @@ export function createTable(seed = Date.now()) {
         win: p.win,
         delta: p.delta,
         total: totals()[seat],
+        live: settled ? totals()[seat] : totals()[seat] + p.delta,
         isTurn: acting === seat,
         thinking: (acting === seat && seat !== HUMAN) || (claim !== null && seat !== HUMAN && claim.responses[seat] === null && Object.values(claim.options[seat]).some(Boolean)),
       };
@@ -200,10 +205,19 @@ export function createTable(seed = Date.now()) {
     const mine = e.seat === HUMAN;
     const volume = mine ? 1 : 0.55;
     const rate = mine ? 1 : [1, 0.94, 1.06, 0.98][e.seat];
-    if (e.kind === "discard") sounds.play("discard", { volume, rate });
-    else if (e.kind === "peng") sounds.play("meld", { volume, rate });
-    else if (e.kind === "gang") sounds.play("meld", { volume, rate: rate * 0.88 });
-    else if (e.kind === "hu" || e.kind === "zimo") sounds.play("win", { volume: mine ? 1 : 0.5, rate: mine ? 1 : 0.9 });
+    // 出牌有三种“啪”，随机挑一个，音高也略有起伏，听着不机械。
+    const jitter = 0.96 + Math.random() * 0.08;
+    if (e.kind === "discard") sounds.play((["discard", "discard2", "discard3"] as const)[Math.floor(Math.random() * 3)], { volume, rate: rate * jitter });
+    else if (e.kind === "peng") {
+      sounds.play("peng", { volume, rate });
+      voice.say(e.seat, "peng", volume);
+    } else if (e.kind === "gang") {
+      sounds.play("gang", { volume, rate });
+      voice.say(e.seat, "gang", volume);
+    } else if (e.kind === "hu" || e.kind === "zimo") {
+      sounds.play("win", { volume: mine ? 1 : 0.5, rate: mine ? 1 : 0.9 });
+      voice.say(e.seat, e.kind === "zimo" ? "zimo" : "hu", mine ? 1 : 0.8);
+    }
   }
 
   function schedule() {
@@ -287,6 +301,7 @@ export function createTable(seed = Date.now()) {
       lastEvent = 0;
       lastDrawn = null;
     });
+    sounds.play("shuffle", { volume: 0.8 });
     bump();
   }
 
@@ -341,6 +356,7 @@ export function createTable(seed = Date.now()) {
     newRound,
     resetTotals,
     sounds,
+    voice,
     points,
     /** 测试用：直接拿到这一局。 */
     game: () => game,

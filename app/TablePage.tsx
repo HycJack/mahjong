@@ -4,11 +4,12 @@ import { cleanup, effect, keymap, Scroll, signal, Text, untracked, View } from "
 import { HUMAN, SEAT_NAMES } from "../game/engine";
 import { points } from "../game/rules";
 import { type Suit, suitName, SUITS } from "../game/tile";
-import { Appear, Button, cx, Dialog, ExternalLink, Felt, StylePicker, Surface, Tile } from "../ui";
+import { Appear, Button, Choice, cx, Dialog, ExternalLink, Felt, StylePicker, Surface, Tile } from "../ui";
+import { VOICE_SETTINGS } from "../ui/voice";
 import { compact, REPO_URL } from "./layout";
 import { balance, money, signedMoney, yuan } from "./money";
 import { MyHand } from "./MyHand";
-import { OtherHand, River, SeatHeader, signed } from "./Seat";
+import { OtherHand, Purse, River, SeatHeader, signed } from "./Seat";
 import type { Table } from "./store";
 
 /** 碰、杠、胡的大字播报，出现后自己淡出。 */
@@ -108,7 +109,16 @@ function VoidDialog(props: { table: Table }) {
           </Each>
         </View>
         <View class="h-px bg-border" />
-        <StylePicker class="justify-center" />
+        <View class="gap-2 items-center">
+          <StylePicker />
+          <Choice
+            label="语音"
+            value={t.voice.setting}
+            onChange={(v) => t.voice.set(v)}
+            testIDPrefix="voice"
+            options={VOICE_SETTINGS.map((v) => ({ id: v.id, label: v.name }))}
+          />
+        </View>
       </View>
     </Dialog>
   );
@@ -239,6 +249,7 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
       <View class={cx("items-center", compact() ? "flex-row justify-center gap-3" : "gap-2")}>
         <SeatHeader seat={seat(2)} dealer={t.view().dealer === 2} align="center" />
         <OtherHand seat={seat(2)} size={compact() ? "xs" : "sm"} />
+        <Purse seat={seat(2)} align="center" compact={compact()} />
       </View>
 
       <View class={cx("flex-1 flex-row", compact() ? "gap-2" : "gap-4")}>
@@ -246,6 +257,7 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
         <View class={cx(compact() ? "w-[150px] gap-1" : "w-[250px] gap-2")}>
           <SeatHeader seat={seat(3)} dealer={t.view().dealer === 3} />
           <OtherHand seat={seat(3)} size={compact() ? "xs" : "sm"} summary />
+          <Purse seat={seat(3)} align="end" compact={compact()} />
           <River seat={seat(3)} last={lastFrom(3)} label="上家的牌河" size={compact() ? "xs" : "sm"} class={cx("flex-1", compact() ? "mt-1" : "mt-2")} />
         </View>
 
@@ -262,6 +274,7 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
         <View class={cx("items-end", compact() ? "w-[150px] gap-1" : "w-[250px] gap-2")}>
           <SeatHeader seat={seat(1)} dealer={t.view().dealer === 1} />
           <OtherHand seat={seat(1)} size={compact() ? "xs" : "sm"} summary />
+          <Purse seat={seat(1)} align="start" compact={compact()} />
           <River seat={seat(1)} last={lastFrom(1)} label="下家的牌河" size={compact() ? "xs" : "sm"} class={cx("flex-1 justify-end", compact() ? "mt-1" : "mt-2")} />
         </View>
       </View>

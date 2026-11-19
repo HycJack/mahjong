@@ -5,7 +5,7 @@ import { HUMAN } from "../game/engine";
 import { tileName } from "../game/tile";
 import { Appear, Button, createHandWave, cx, HandTile, Kbd, tileSizes } from "../ui";
 import { compact, touch } from "./layout";
-import { MeldGroup, SeatHeader } from "./Seat";
+import { MeldGroup, Purse, SeatHeader } from "./Seat";
 import type { Table } from "./store";
 
 export function ActionBar(props: { table: Table }) {
@@ -121,13 +121,15 @@ export function MyHand(props: { table: Table }) {
         {/* 紧凑布局：座位、提示、操作放在一行。 */}
         <View class="self-stretch flex-row items-center gap-3 h-10">
           <SeatHeader seat={me} dealer={t.view().dealer === HUMAN} />
+          <Purse seat={me} compact />
           <Hint table={t} />
           <ActionBar table={t} />
         </View>
       </If>
       <View class={cx("flex-row items-end", compact() ? "gap-2" : "gap-4")}>
         <If when={!compact()}>
-          <View class="pb-1">
+          <View class="pb-1 gap-3">
+            <Purse seat={me} />
             <SeatHeader seat={me} dealer={t.view().dealer === HUMAN} />
           </View>
         </If>
