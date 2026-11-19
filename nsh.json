@@ -1,0 +1,22 @@
+{
+  "name": "血战到底",
+  "id": "com.example.xuezhan",
+  "version": "1.0.0",
+  "build": 1,
+  "theme": "theme.json",
+  "window": {
+    "title": "血战到底",
+    "defaultSize": {
+      "width": 1280,
+      "height": 860
+    },
+    "minSize": {
+      "width": 1080,
+      "height": 760
+    },
+    "titleBar": {
+      "style": "hidden",
+      "height": 48
+    }
+  }
+}
