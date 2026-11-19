@@ -2,7 +2,7 @@
 
 用 [NSH](https://nsh.dev)（纯 TSX）写的四川麻将“血战到底”：你和三家电脑对战。
 
-**在线玩：** https://huacnlee.github.io/mojang/
+**在线玩：** https://huacnlee.github.io/mahjong/
 
 ![牌桌（深色）](docs/screenshots/table-dark.jpg)
 
@@ -19,21 +19,21 @@ iPhone 横屏：
 macOS（Apple 芯片）/ Linux（x86_64，需要 GTK 4.14+）：
 
 ```sh
-curl -fsSL https://huacnlee.github.io/mojang/install.sh | sh
+curl -fsSL https://huacnlee.github.io/mahjong/install.sh | sh
 ```
 
 Windows（PowerShell）：
 
 ```powershell
-irm https://huacnlee.github.io/mojang/install.ps1 | iex
+irm https://huacnlee.github.io/mahjong/install.ps1 | iex
 ```
 
-脚本会从 [Releases](https://github.com/huacnlee/mojang/releases) 下载对应安装包，核对 `SHA256SUMS` 后安装。指定版本：`MOJANG_VERSION=v1.0.0`。
+脚本会从 [Releases](https://github.com/huacnlee/mahjong/releases) 下载对应安装包，核对 `SHA256SUMS` 后安装。指定版本：`MAHJONG_VERSION=v1.0.0`。
 
 手机：
 
-- **Android**：在 Releases 下载 `mojang-android.apk` 安装。
-- **iOS**：Releases 里有模拟器包 `mojang-ios-simulator.zip`；装到真机需要开发者签名（见 `.github/workflows/release.yml` 里的 Secrets 说明）。
+- **Android**：在 Releases 下载 `mahjong-android.apk` 安装。
+- **iOS**：Releases 里有模拟器包 `mahjong-ios-simulator.zip`；装到真机需要开发者签名（见 `.github/workflows/release.yml` 里的 Secrets 说明）。
 
 ## 玩法
 

@@ -59,7 +59,7 @@ test("GitHub 入口打开项目主页", async () => {
   await app.press("id:void-tong");
   await app.press("id:start");
   await app.press("text:GitHub");
-  expect(app.openedUrls()).toContain("https://github.com/huacnlee/mojang");
+  expect(app.openedUrls()).toContain("https://github.com/huacnlee/mahjong");
   await app.press("text:规则");
   await app.press("text:源代码与下载");
   expect(app.openedUrls().length).toBe(2);

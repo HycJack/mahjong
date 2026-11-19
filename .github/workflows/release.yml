@@ -32,11 +32,11 @@ jobs:
         run: |
           nsh package --target macos -o out/macos
           mkdir -p dist
-          ditto -c -k --keepParent out/macos/*.app dist/mojang-macos-arm64.zip
+          ditto -c -k --keepParent out/macos/*.app dist/mahjong-macos-arm64.zip
       - name: iOS simulator
         run: |
           nsh package --target ios-simulator -o out/ios-sim
-          ditto -c -k --keepParent out/ios-sim/*.app dist/mojang-ios-simulator.zip
+          ditto -c -k --keepParent out/ios-sim/*.app dist/mahjong-ios-simulator.zip
       - name: iOS device
         env:
           IOS_CERT_P12_BASE64: ${{ secrets.IOS_CERT_P12_BASE64 }}
@@ -55,10 +55,10 @@ jobs:
             security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
             echo "$IOS_PROFILE_BASE64" | base64 --decode > "$RUNNER_TEMP/app.mobileprovision"
             nsh package --target ios -o out/ios --sign "$IOS_SIGN_IDENTITY" --profile "$RUNNER_TEMP/app.mobileprovision"
-            cp out/ios/*.ipa dist/mojang-ios.ipa
+            cp out/ios/*.ipa dist/mahjong-ios.ipa
           else
             nsh package --target ios -o out/ios
-            ditto -c -k --keepParent out/ios/*.app dist/mojang-ios-unsigned.zip
+            ditto -c -k --keepParent out/ios/*.app dist/mahjong-ios-unsigned.zip
           fi
       - uses: actions/upload-artifact@v4
         with: { name: apple, path: dist/* }
@@ -87,7 +87,7 @@ jobs:
             nsh package --target android -o out/android
           fi
           mkdir -p dist
-          cp out/android/*.apk dist/mojang-android.apk
+          cp out/android/*.apk dist/mahjong-android.apk
       - uses: actions/upload-artifact@v4
         with: { name: android, path: dist/* }
 
@@ -104,7 +104,7 @@ jobs:
         run: |
           nsh package --target linux -o out/linux
           mkdir -p dist
-          cp out/linux/*.tar.gz dist/mojang-linux-x86_64.tar.gz
+          cp out/linux/*.tar.gz dist/mahjong-linux-x86_64.tar.gz
       - uses: actions/upload-artifact@v4
         with: { name: linux, path: dist/* }
 
@@ -124,7 +124,7 @@ jobs:
         run: |
           nsh package --target windows -o out/windows
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item (Get-ChildItem out/windows/*.zip | Select-Object -First 1).FullName dist/mojang-windows-x86_64.zip
+          Copy-Item (Get-ChildItem out/windows/*.zip | Select-Object -First 1).FullName dist/mahjong-windows-x86_64.zip
       - uses: actions/upload-artifact@v4
         with: { name: windows, path: dist/* }
 

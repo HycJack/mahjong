@@ -3,7 +3,7 @@
 #   assets/icon.png        1024×1024 铺满，给 iOS、Android、Windows、Linux、Web（系统自己加圆角）
 #   assets/icon-macos.png  1024×1024 透明画布，图案 824×824 居中、圆角 185、带投影（macOS 的图标规范）
 set -eu
-body=$(mktemp -t mojang-icon).png
+body=$(mktemp -t mahjong-icon).png
 cd "$(dirname "$0")/.."
 raw=assets/icon-src/raw.png
 magick "$raw" -gravity center -crop 1024x1024+0+0 +repage -alpha off assets/icon.png

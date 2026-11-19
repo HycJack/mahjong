@@ -9,4 +9,4 @@ export const touch = platform.os === "ios" || platform.os === "android";
 export const compact = computed(() => windowSize().height < 600 || windowSize().width < 980);
 
 /** 项目主页：源代码、下载与安装。 */
-export const REPO_URL = "https://github.com/huacnlee/mojang";
+export const REPO_URL = "https://github.com/huacnlee/mahjong";

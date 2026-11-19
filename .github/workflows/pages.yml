@@ -34,7 +34,7 @@ jobs:
           nsh package --target web -o out/web
           mkdir -p site
           cp -R out/web/*/. site/
-          # 安装脚本也从这里提供：https://<owner>.github.io/mojang/install.sh
+          # 安装脚本也从这里提供：https://<owner>.github.io/mahjong/install.sh
           cp install.sh install.ps1 site/
       - uses: actions/upload-pages-artifact@v3
         with: { path: site }
