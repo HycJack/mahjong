@@ -4,6 +4,7 @@ import { createMotion, effect, Text, untracked, View } from "nsh";
 import { isGang, type Meld, points } from "../game/rules";
 import { suitName, type Suit, type Tile as TileId } from "../game/tile";
 import { Appear, Badge, type BadgeVariant, cx, nudge, Tile, TileBack, type TileSize } from "../ui";
+import { money, signedMoney, yuan } from "./money";
 import type { SeatView } from "./store";
 
 const voidVariant: BadgeVariant[] = ["wan", "tiao", "tong"];
@@ -56,7 +57,7 @@ export function SeatHeader(props: { seat: () => SeatView; dealer: boolean; align
               label={`${win().from === null ? "自摸" : "胡"} · ${win().score.fan > 0 ? `${win().score.fan} 番` : "平胡"}`}
               variant="win"
               strong
-              accessibilityLabel={`第${win().order}个胡牌，${win().score.fan}番，${points(win().score.fan)}分`}
+              accessibilityLabel={`第${win().order}个胡牌，${win().score.fan}番，${money(yuan(points(win().score.fan)))}`}
             />
           </Appear>
         )}
@@ -66,13 +67,13 @@ export function SeatHeader(props: { seat: () => SeatView; dealer: boolean; align
       </If>
       <Text
         style={scorePop.style}
-        accessibilityLabel={`本局${signed(s().delta)}分`}
+        accessibilityLabel={`本局${signedMoney(s().delta)}`}
         class={cx(
           "text-[13px] font-semibold tabular-nums ml-1",
           s().delta > 0 ? "text-gain" : s().delta < 0 ? "text-loss" : "text-felt-muted",
         )}
       >
-        {signed(s().delta)}
+        {signedMoney(s().delta)}
       </Text>
     </View>
   );
@@ -138,7 +139,7 @@ export function OtherHand(props: { seat: () => SeatView; size: TileSize; summary
           <Each of={revealed(s())} key="index">
             {(t, i) => (
               <Appear motion="reveal" delay={i() * 25}>
-                <Tile tile={t().tile} size={stacked() ? "xs" : props.size} highlight={t().win} />
+                <Tile tile={t().tile} size={stacked() ? "xs" : props.size} highlight={t().win} shine={t().win} />
               </Appear>
             )}
           </Each>

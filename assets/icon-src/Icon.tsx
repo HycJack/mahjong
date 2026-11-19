@@ -1,16 +1,27 @@
 // 应用图标的源：nsh test assets/icon-src/icon.test.tsx --target macos 生成 assets/icon.png（1024×1024）。
-import { mount, View } from "nsh";
-import { TileFace } from "../../ui/TileFace";
+// 与牌桌上的牌是同一套绘制（ui/tileArt.ts），只是放大。
+import { Canvas, mount, View } from "nsh";
+import { drawBack, drawBody, drawFace, palette, type TileBox } from "../../ui/tileArt";
+
+const back: TileBox = { w: 230, h: 310, edge: 22, r: 26 };
+const front: TileBox = { w: 240, h: 322, edge: 24, r: 26 };
 
 function Icon() {
   return (
     <View class="flex-1 bg-felt items-center justify-center">
-      <View class="absolute w-[230px] h-[310px] rounded-[26px] bg-tile-back border-b-[18px] border-tile-back-edge" style={{ transform: [{ rotate: "-14deg" }, { translateX: -70 }, { translateY: 6 }] }} />
-      <View
-        class="w-[240px] h-[322px] rounded-[26px] bg-tile-face border-b-[20px] border-tile-edge items-center justify-center shadow-xl"
-        style={{ transform: [{ rotate: "6deg" }, { translateX: 40 }] }}
-      >
-        <TileFace tile={18 + 4} metrics={{ w: 196, h: 262, rank: 0, wan: 0 }} />
+      <View class="absolute" style={{ transform: [{ rotate: "-14deg" }, { translateX: -70 }, { translateY: 6 }] }}>
+        <Canvas style={{ width: back.w, height: back.h }} draw={(c) => drawBack(c, back, palette())} />
+      </View>
+      <View class="shadow-xl rounded-[26px]" style={{ transform: [{ rotate: "6deg" }, { translateX: 40 }] }}>
+        <Canvas
+          style={{ width: front.w, height: front.h }}
+          draw={(c) => {
+            const p = palette();
+            drawBody(c, front, p);
+            const fh = front.h - front.edge;
+            drawFace(c, 18 + 4, front.w * 0.09, fh * 0.08, front.w * 0.82, fh * 0.84, p);
+          }}
+        />
       </View>
     </View>
   );

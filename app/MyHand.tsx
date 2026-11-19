@@ -3,7 +3,7 @@
 import { Text, View } from "nsh";
 import { HUMAN } from "../game/engine";
 import { tileName } from "../game/tile";
-import { Appear, Button, cx, HandTile, Kbd } from "../ui";
+import { Appear, Button, createHandWave, cx, HandTile, Kbd, tileSizes } from "../ui";
 import { compact, touch } from "./layout";
 import { MeldGroup, SeatHeader } from "./Seat";
 import type { Table } from "./store";
@@ -101,6 +101,12 @@ export function MyHand(props: { table: Table }) {
   const myTurn = () => t.view().turn !== null;
   const handLength = () => me().hand.length;
   const handSize = () => (compact() ? "ml" : "lg");
+  // 悬停波浪：按每张牌在这一行里的中心算抬起量。gap-1 是 4pt，摸到的牌前面多 ml-3 / ml-2。
+  const wave = createHandWave();
+  const GAP = 4;
+  const tileW = () => tileSizes[handSize()].w;
+  const centerOf = (i: number) => i * (tileW() + GAP) + tileW() / 2;
+  const drawnCenter = () => handLength() * (tileW() + GAP) - GAP + (compact() ? 8 : 12) + tileW() / 2;
   return (
     <View class={cx("items-center", compact() ? "gap-1" : "gap-1.5")}>
       <If
@@ -132,7 +138,13 @@ export function MyHand(props: { table: Table }) {
             </Each>
           </View>
         </If>
-        <View accessibilityLabel="你的手牌" class={cx("flex-row items-end gap-1", compact() ? "pt-2" : "pt-3")}>
+        <View
+          accessibilityLabel="你的手牌"
+          class={cx("flex-row items-end gap-1", compact() ? "pt-2" : "pt-3")}
+          onMouseEnter={wave.onMouseEnter}
+          onMouseMove={wave.onMouseMove}
+          onMouseLeave={wave.onMouseLeave}
+        >
           <Each of={me().hand} key="index">
             {(tile, i) => (
               <HandTile
@@ -142,6 +154,7 @@ export function MyHand(props: { table: Table }) {
                 muted={myTurn() && !t.canPlay(i())}
                 disabled={me().win !== null}
                 testID={`hand-${i()}`}
+                wave={wave.at(centerOf(i()), tileW())}
                 onPress={() => t.pressTile(i())}
               />
             )}
@@ -156,6 +169,7 @@ export function MyHand(props: { table: Table }) {
                   muted={myTurn() && !t.canPlay(handLength())}
                   disabled={me().win !== null}
                   testID="drawn"
+                  wave={wave.at(drawnCenter(), tileW())}
                   onPress={() => t.pressTile(handLength())}
                 />
               </Appear>

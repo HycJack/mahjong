@@ -1,5 +1,5 @@
 #!/bin/sh
-# 安装「血战到底」（macOS / Linux）：
+# 安装 Mojiang（四川麻将血战到底，macOS / Linux）：
 #   curl -fsSL https://huacnlee.github.io/mojang/install.sh | sh
 # 可选环境变量：
 #   MOJANG_VERSION  指定版本（如 v1.0.0），默认最新
@@ -7,7 +7,7 @@
 set -eu
 
 REPO="huacnlee/mojang"
-APP="血战到底"
+APP="Mojiang"
 
 say() { printf '%s\n' "$*"; }
 fail() { printf '安装失败：%s\n' "$*" >&2; exit 1; }
@@ -54,11 +54,15 @@ case "$(uname -s)" in
     else DEST="$HOME/Applications"; fi
     mkdir -p "$DEST"
     ditto -x -k "$TMP/$ASSET" "$TMP/unpacked"
-    rm -rf "$DEST/$APP.app"
-    mv "$TMP/unpacked/$APP.app" "$DEST/$APP.app"
-    xattr -r -d com.apple.quarantine "$DEST/$APP.app" >/dev/null 2>&1 || true
-    say "已安装到 $DEST/$APP.app"
-    say "打开：open \"$DEST/$APP.app\""
+    SRC="$(find "$TMP/unpacked" -maxdepth 1 -name '*.app' | head -n 1)"
+    [ -n "$SRC" ] || fail "压缩包里没有 .app"
+    NAME="$(basename "$SRC")"
+    # 旧版本的应用名是「血战到底」，换名后一并移除。
+    rm -rf "$DEST/$NAME" "$DEST/血战到底.app"
+    mv "$SRC" "$DEST/$NAME"
+    xattr -r -d com.apple.quarantine "$DEST/$NAME" >/dev/null 2>&1 || true
+    say "已安装到 $DEST/$NAME"
+    say "打开：open \"$DEST/$NAME\""
     ;;
   Linux)
     need tar

@@ -1,3 +1,4 @@
+import { t } from "nsh/i18n";
 import { expect, open, test } from "nsh/test";
 
 const SHOTS: string | undefined = undefined;
@@ -59,4 +60,18 @@ test("GitHub 入口打开项目主页", async () => {
   await app.press("text:规则");
   await app.press("text:源代码与下载");
   expect(app.openedUrls().length).toBe(2);
+});
+
+test("应用名：中文是血战到底，英文是 Mojiang", () => {
+  expect(t("app.name", { locale: "zh-CN" })).toBe("血战到底");
+  expect(t("app.name", { locale: "en" })).toBe("Mojiang");
+});
+
+test("开局可以换牌背风格", async () => {
+  const app = await open("./App.tsx", { width: 1280, height: 860 });
+  await app.press("id:style-blue");
+  expect(app.shows("id:style-blue")).toBe(true);
+  await app.press("id:style-red");
+  await app.press("id:void-tong");
+  expect(app.shows("id:style-red")).toBe(false);
 });

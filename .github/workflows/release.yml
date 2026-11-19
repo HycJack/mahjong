@@ -148,5 +148,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/* --clobber
           else
-            gh release create "$TAG" dist/* --title "血战到底 $TAG" --notes "$NOTES"
+            gh release create "$TAG" dist/* --title "Mojiang $TAG" --notes "$NOTES"
           fi

@@ -4,8 +4,9 @@ import { cleanup, effect, keymap, Scroll, signal, Text, untracked, View } from "
 import { HUMAN, SEAT_NAMES } from "../game/engine";
 import { points } from "../game/rules";
 import { type Suit, suitName, SUITS } from "../game/tile";
-import { Appear, Button, cx, Dialog, ExternalLink, Surface, Tile } from "../ui";
+import { Appear, Button, cx, Dialog, ExternalLink, Felt, StylePicker, Surface, Tile } from "../ui";
 import { compact, REPO_URL } from "./layout";
+import { balance, money, signedMoney, yuan } from "./money";
 import { MyHand } from "./MyHand";
 import { OtherHand, River, SeatHeader, signed } from "./Seat";
 import type { Table } from "./store";
@@ -106,6 +107,8 @@ function VoidDialog(props: { table: Table }) {
             )}
           </Each>
         </View>
+        <View class="h-px bg-border" />
+        <StylePicker class="justify-center" />
       </View>
     </Dialog>
   );
@@ -117,7 +120,7 @@ function ResultDialog(props: { table: Table; open: () => boolean; onClose: () =>
     t.view().seats.map((s) => {
       const notes = t.view().settlements.filter((n) => n.seat === s.seat).map((n) => n.note);
       const win = s.win
-        ? `第 ${s.win.order} 个胡 · ${s.win.from === null ? "自摸" : `点炮：${SEAT_NAMES[s.win.from]}`} · ${s.win.score.names.join(" ")} · ${s.win.score.fan} 番 ${points(s.win.score.fan)} 分`
+        ? `第 ${s.win.order} 个胡 · ${s.win.from === null ? "自摸" : `点炮：${SEAT_NAMES[s.win.from]}`} · ${s.win.score.names.join(" ")} · ${s.win.score.fan} 番 ${money(yuan(points(s.win.score.fan)))}`
         : "";
       return { seat: s.seat, name: s.name, detail: [win, ...notes].filter(Boolean).join("；") || "未胡", delta: s.delta, total: s.total };
     });
@@ -125,7 +128,7 @@ function ResultDialog(props: { table: Table; open: () => boolean; onClose: () =>
   return (
     <Dialog
       open={props.open()}
-      title={mine() > 0 ? `本局赢 ${mine()} 分` : mine() < 0 ? `本局输 ${-mine()} 分` : "本局不输不赢"}
+      title={mine() > 0 ? `本局赢 ${money(yuan(mine()))}` : mine() < 0 ? `本局输 ${money(yuan(-mine()))}` : "本局不输不赢"}
       description={`第 ${t.round()} 局结束`}
       width="md"
       dismissible
@@ -143,10 +146,10 @@ function ResultDialog(props: { table: Table; open: () => boolean; onClose: () =>
             <View class={cx("flex-row items-center gap-3 px-3 py-2.5", i() > 0 && "border-t border-border")}>
               <Text class="w-10 text-[13px] font-semibold text-popover-foreground">{r().name}</Text>
               <Text class="flex-1 text-[12px] text-muted-foreground">{r().detail}</Text>
-              <Text class={cx("w-12 text-right text-[14px] font-semibold tabular-nums", r().delta > 0 ? "text-gain" : r().delta < 0 ? "text-loss" : "text-muted-foreground")}>
-                {signed(r().delta)}
+              <Text class={cx("w-16 text-right text-[14px] font-semibold tabular-nums", r().delta > 0 ? "text-gain" : r().delta < 0 ? "text-loss" : "text-muted-foreground")}>
+                {signedMoney(r().delta)}
               </Text>
-              <Text class="w-14 text-right text-[12px] text-muted-foreground tabular-nums">{`累计 ${signed(r().total)}`}</Text>
+              <Text class="w-[88px] text-right text-[12px] text-muted-foreground tabular-nums">{`余 ${money(balance(r().total))}`}</Text>
             </View>
           )}
         </Each>
@@ -160,11 +163,11 @@ export function RulesDialog(props: { open: () => boolean; onClose: () => void })
     ["牌", "只有万、条、筒，共 108 张；不能吃，只能碰和杠。"],
     ["定缺", "开局选一门不要的花色，先打完它；手里有缺门的牌不能胡。"],
     ["血战", "一家胡了就离场，其余继续，直到只剩一家或牌摸完。一炮可以多响。"],
-    ["计分", "平胡 1 分，每番翻倍，最多 5 番（32 分）。自摸三家都给。"],
+    ["筹码", "每人本金 ¥5,000，底注 ¥10。平胡 ¥10，每番翻倍，最多 5 番（¥320）。自摸三家都给。"],
     ["番型", "清一色 2、对对胡 1、将对 3、七对 2、带幺九 2、金钩钓 1，每个根（四张一样）1。"],
     ["加番", "自摸、杠上开花、杠上炮、抢杠胡、海底捞月、海底炮，各 1 番。"],
-    ["刮风下雨", "暗杠每家给 2 分，补杠每家给 1 分，直杠由放杠的人给 2 分。"],
-    ["流局", "查花猪：手里还有缺门的赔每家 32 分。查大叫：没听牌的赔听牌的人他能胡的最大分。"],
+    ["刮风下雨", "暗杠每家给 ¥20，补杠每家给 ¥10，直杠由放杠的人给 ¥20。"],
+    ["流局", "查花猪：手里还有缺门的赔每家 ¥320。查大叫：没听牌的赔听牌的人他能胡的最大番。"],
   ];
   return (
     <Dialog open={props.open()} title="规则" dismissible onClose={props.onClose} width="md" footer={
@@ -231,6 +234,7 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
 
   return (
     <Surface variant="felt" class={cx("flex-1", compact() ? "px-3 py-2 gap-1.5" : "p-4 gap-3")}>
+      <Felt />
       {/* 对家 */}
       <View class={cx("items-center", compact() ? "flex-row justify-center gap-3" : "gap-2")}>
         <SeatHeader seat={seat(2)} dealer={t.view().dealer === 2} align="center" />

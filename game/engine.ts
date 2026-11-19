@@ -459,7 +459,7 @@ export class Game {
         this.players[pig].delta -= max;
         this.players[s].delta += max;
       }
-      this.settlements.push({ seat: pig, note: `花猪，赔每家 ${max} 分` });
+      this.settlements.push({ seat: pig, note: "花猪，按最大番赔其他每家" });
     }
     const ready: { seat: number; score: Score }[] = [];
     for (const s of active) {
@@ -471,14 +471,12 @@ export class Game {
     for (const r of ready) this.settlements.push({ seat: r.seat, note: `听牌，最大 ${r.score.fan} 番` });
     for (const s of active) {
       if (pigs.includes(s) || ready.some((r) => r.seat === s)) continue;
-      let paid = 0;
       for (const r of ready) {
         const pts = points(r.score.fan);
         this.players[s].delta -= pts;
         this.players[r.seat].delta += pts;
-        paid += pts;
       }
-      this.settlements.push({ seat: s, note: ready.length === 0 ? "没听牌" : `没听牌，赔 ${paid} 分` });
+      this.settlements.push({ seat: s, note: ready.length === 0 ? "没听牌" : "没听牌，赔给听牌的人" });
     }
   }
 

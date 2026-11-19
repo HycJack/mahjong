@@ -1,12 +1,11 @@
-# Install Mojang (Sichuan Mahjong, Xue Zhan Dao Di) on Windows:
+# Install Mojiang (Sichuan Mahjong, Xue Zhan Dao Di) on Windows:
 #   irm https://huacnlee.github.io/mojang/install.ps1 | iex
 # Optional: $env:MOJANG_VERSION = "v1.0.0" picks a release; $env:MOJANG_DIR picks the install directory.
 # This file is ASCII only: it is served without a charset, which Windows PowerShell would misread.
 $ErrorActionPreference = "Stop"
 
 $Repo = "huacnlee/mojang"
-# The app's Chinese name, built from code points.
-$App = -join ([char[]](0x8840, 0x6218, 0x5230, 0x5E95))
+$App = "Mojiang"
 $Asset = "mojang-windows-x86_64.zip"
 
 if ($env:PROCESSOR_ARCHITECTURE -ne "AMD64") {
@@ -54,7 +53,7 @@ try {
   $Link.Save()
 
   Write-Host "Installed to $Dest"
-  Write-Host "Open it from the Start menu: $App"
+  Write-Host "Open $App from the Start menu."
 } finally {
   Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
 }

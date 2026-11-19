@@ -1,7 +1,9 @@
 import { keymap, mount, signal, Text, View } from "nsh";
 import { createNavStack, NavPage, NavStack } from "nsh/base";
 import { titleBar } from "nsh/desktop";
+import { t } from "nsh/i18n";
 import { compact, REPO_URL, touch } from "./app/layout";
+import { balance, money } from "./app/money";
 import { createTable } from "./app/store";
 import { RulesDialog, TablePage } from "./app/TablePage";
 import { Badge, Button, cx, ExternalLink } from "./ui";
@@ -21,11 +23,11 @@ function Game() {
         class={cx("flex-row items-center gap-3", compact() ? "h-9" : "h-12")}
       >
         <Text role="header" class="text-[15px] font-semibold text-foreground">
-          血战到底
+          {t("app.name")}
         </Text>
         <Badge label={`第 ${table.round()} 局`} />
         <Text class={cx("text-[12px] text-muted-foreground", compact() && "hidden")}>
-          {`累计：${table.totals().map((s, i) => `${["你", "下家", "对家", "上家"][i]} ${s > 0 ? "+" : ""}${s}`).join("　")}`}
+          {`筹码：${table.totals().map((s, i) => `${["你", "下家", "对家", "上家"][i]} ${money(balance(s))}`).join("　")}`}
         </Text>
         <View class="flex-1" />
         <ExternalLink label="GitHub" href={REPO_URL} accessibilityLabel="在 GitHub 上查看源代码与下载" />
