@@ -1,8 +1,9 @@
 import { Canvas, token } from "nsh";
 import { alpha, mix } from "./tileArt";
 
-/** 牌桌的毡布：中间亮、四周暗的径向渐变，内侧一圈桌沿线。铺在 felt 表面的最底层。 */
-export function Felt() {
+/** 牌桌的毡布：中间亮、四周暗的径向渐变，内侧一圈桌沿线。铺在 felt 表面的最底层。
+ * `bleed`：铺满整个窗口（含刘海两侧和标题栏），不画圆角和桌沿线。 */
+export function Felt(props: { bleed?: boolean } = {}) {
   return (
     <Canvas
       class="absolute inset-0 pointer-events-none"
@@ -12,7 +13,7 @@ export function Felt() {
         const hi = token("felt-hi") as string;
         const deep = token("felt-deep") as string;
         const line = token("felt-line") as string;
-        const r = token("radius") as number;
+        const r = props.bleed ? 0 : (token("radius") as number);
         const { width: w, height: h } = size;
         const g = c.createRadialGradient(w / 2, h * 0.46, 0, w / 2, h / 2, Math.max(w, h) * 0.62);
         g.addColorStop(0, hi);
@@ -22,6 +23,7 @@ export function Felt() {
         c.roundRect(0, 0, w, h, r);
         c.fillStyle = g;
         c.fill();
+        if (props.bleed) return;
         const inset = Math.min(10, w * 0.012);
         c.beginPath();
         c.roundRect(inset, inset, w - inset * 2, h - inset * 2, Math.max(2, r - 2));

@@ -6,7 +6,7 @@ import { transition } from "./motion";
 /** 触屏设备不显示快捷键。 */
 const touch = platform.os === "ios" || platform.os === "android";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "call" | "win";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "call" | "win" | "feltGhost" | "feltOutline";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const variants: Record<ButtonVariant, { box: string; text: string }> = {
@@ -17,6 +17,9 @@ const variants: Record<ButtonVariant, { box: string; text: string }> = {
   // 牌桌上的碰、杠、过：象牙底，压在绒布上。
   call: { box: "bg-tile-face border-b-2 border-tile-edge hover:bg-tile-face/90 active:bg-tile-edge", text: "text-tile-ink" },
   win: { box: "bg-win border-b-2 border-win/60 hover:bg-win/90 active:bg-win/80", text: "text-win-foreground" },
+  // 放在绒布上的标题栏按钮。
+  feltGhost: { box: "bg-transparent hover:bg-felt-deep active:bg-felt-deep/80", text: "text-felt-foreground" },
+  feltOutline: { box: "bg-felt-deep/60 border border-felt-line hover:bg-felt-deep active:bg-felt-deep/80", text: "text-felt-foreground" },
 };
 
 const sizes: Record<ButtonSize, { box: string; text: string }> = {

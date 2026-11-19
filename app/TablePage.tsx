@@ -4,7 +4,7 @@ import { cleanup, effect, keymap, Scroll, signal, Text, untracked, View } from "
 import { HUMAN, SEAT_NAMES } from "../game/engine";
 import { points } from "../game/rules";
 import { type Suit, suitName, suitOf, SUITS } from "../game/tile";
-import { Appear, Button, Choice, cx, Dialog, ExternalLink, Felt, StylePicker, Surface, Tile } from "../ui";
+import { Appear, Button, Choice, cx, Dialog, ExternalLink, StylePicker, Surface, Tile } from "../ui";
 import { VOICE_SETTINGS } from "../ui/voice";
 import { compact, REPO_URL } from "./layout";
 import { balance, money, signedMoney, yuan } from "./money";
@@ -245,8 +245,7 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
   });
 
   return (
-    <Surface variant="felt" class={cx("flex-1", compact() ? "px-3 py-2 gap-1.5" : "p-4 gap-3")}>
-      <Felt />
+    <View class={cx("flex-1", compact() ? "px-3 py-2 gap-1.5" : "px-4 pb-4 pt-1 gap-3")}>
       {/* 对家 */}
       <View class={cx("items-center", compact() ? "flex-row justify-center gap-3" : "gap-2")}>
         <SeatHeader seat={seat(2)} dealer={t.view().dealer === 2} align="center" />
@@ -285,7 +284,7 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
       <Banner table={t} />
       <StartDialog table={t} pick={pick} onPick={(s) => voidPick.set(s)} onStart={start} />
       <ResultDialog table={t} open={resultOpen} onClose={() => resultOpen.set(false)} />
-    </Surface>
+    </View>
   );
 }
 

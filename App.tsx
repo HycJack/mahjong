@@ -5,7 +5,7 @@ import { t } from "nsh/i18n";
 import { compact, REPO_URL, touch } from "./app/layout";
 import { createTable } from "./app/store";
 import { RulesDialog, TablePage } from "./app/TablePage";
-import { Badge, Button, cx, ExternalLink } from "./ui";
+import { Badge, Button, cx, ExternalLink, Felt } from "./ui";
 
 function Game() {
   const table = createTable();
@@ -14,32 +14,34 @@ function Game() {
   keymap.bind({ "mod+n": newRound, "shift+/": () => rulesOpen.set(true), m: () => table.sounds.toggle() });
 
   return (
-    <View class="flex-1 bg-background pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]">
+    <View class="flex-1 bg-felt pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]">
+      {/* 整个窗口都是牌桌的绒布：标题栏、刘海两侧和底部都铺满。 */}
+      <Felt bleed />
       {/* 自绘标题栏：整条可拖动窗口，左右让出系统的窗口按钮。 */}
       <View
         desktop={{ windowDrag: true }}
         style={{ paddingLeft: titleBar().left + 16, paddingRight: titleBar().right + 16 }}
         class={cx("flex-row items-center gap-3", compact() ? "h-9" : "h-12")}
       >
-        <Text role="header" class="text-[15px] font-semibold text-foreground">
+        <Text role="header" class="text-[15px] font-semibold text-felt-foreground">
           {t("app.name")}
         </Text>
-        <Badge label={`第 ${table.round()} 局`} />
+        <Badge label={`第 ${table.round()} 局`} variant="felt" />
         <View class="flex-1" />
-        <ExternalLink label="GitHub" href={REPO_URL} accessibilityLabel="在 GitHub 上查看源代码与下载" />
+        <ExternalLink label="GitHub" tone="felt" href={REPO_URL} accessibilityLabel="在 GitHub 上查看源代码与下载" />
         <Button
           label={table.sounds.enabled() ? "音效 开" : "音效 关"}
-          variant="ghost"
+          variant="feltGhost"
           size="sm"
           shortcut="M"
           testID="sound"
           accessibilityLabel={table.sounds.enabled() ? "关闭音效" : "打开音效"}
           onPress={() => table.sounds.toggle()}
         />
-        <Button label="规则" variant="ghost" size="sm" shortcut="?" onPress={() => rulesOpen.set(true)} />
-        <Button label="新一局" variant="outline" size="sm" shortcut={keymap.label("mod+n")} onPress={newRound} />
+        <Button label="规则" variant="feltGhost" size="sm" shortcut="?" onPress={() => rulesOpen.set(true)} />
+        <Button label="新一局" variant="feltOutline" size="sm" shortcut={keymap.label("mod+n")} onPress={newRound} />
       </View>
-      <View class={cx("flex-1", compact() ? "px-2 pb-2" : "px-3 pb-3")}>
+      <View class="flex-1">
         <TablePage table={table} rulesOpen={rulesOpen} onRulesClose={() => rulesOpen.set(false)} />
       </View>
       <RulesDialog open={rulesOpen} onClose={() => rulesOpen.set(false)} />
