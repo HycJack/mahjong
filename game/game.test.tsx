@@ -2,7 +2,7 @@ import { expect, test } from "nsh/test";
 import { chooseDiscard } from "./ai";
 import { Game, HUMAN, isActive, tilesOf } from "./engine";
 import { evaluate, type Meld, points, shanten, waits } from "./rules";
-import { countsOf, type Suit, type Tile, tile } from "./tile";
+import { countsOf, type Suit, suitOf, type Tile, tile } from "./tile";
 
 /** "123w456t789b55w" → 牌；w 万、t 条、b 筒。 */
 function parse(s: string): Tile[] {
@@ -81,10 +81,11 @@ test("有缺门的牌必须先打", () => {
 });
 
 /** 让人也按电脑的打法自动打完一局。 */
-function autoplay(seed: number) {
+function autoplay(seed: number, each?: (g: Game) => void) {
   const g = new Game(seed, seed % 4);
   g.chooseVoid(0);
   for (let steps = 0; steps < 2000 && !g.isOver; steps++) {
+    each?.(g);
     if (g.waitingOnAi) {
       g.aiStep();
       continue;
@@ -113,3 +114,14 @@ for (let group = 0; group < 10; group++) {
     }
   });
 }
+
+test("定缺的那门始终排在手牌最右边", () => {
+  for (let seed = 1; seed <= 12; seed++) {
+    autoplay(seed, (g) => {
+      for (const p of g.players) {
+        const first = p.hand.findIndex((t) => suitOf(t) === p.voidSuit);
+        if (first >= 0) expect(p.hand.slice(first).every((t) => suitOf(t) === p.voidSuit)).toBe(true);
+      }
+    });
+  }
+});

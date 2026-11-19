@@ -110,7 +110,13 @@ function sortPlayer(p: Player) {
     p.hand.push(p.drawn);
     p.drawn = null;
   }
-  sortTiles(p.hand);
+  arrange(p);
+}
+
+/** 手牌排序：按花色、点数，定缺的那门始终放在最右边（先打它们）。 */
+function arrange(p: Player) {
+  const v = p.voidSuit;
+  p.hand.sort((a, b) => Number(suitOf(a) === v) - Number(suitOf(b) === v) || a - b);
 }
 
 function take(p: Player, t: Tile, n: number) {
@@ -201,6 +207,7 @@ export class Game {
   chooseVoid(suit: Suit) {
     if (this.phase.kind !== "dingque") return;
     this.players[HUMAN].voidSuit = suit;
+    for (const p of this.players) arrange(p);
     const line = this.players.map((p, s) => `${seatName(s)}缺${p.voidSuit === null ? "" : suitName(p.voidSuit)}`).join("，");
     this.say(HUMAN, "info", line);
     this.drew = true;
