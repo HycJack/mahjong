@@ -1,10 +1,11 @@
 // 牌桌：四家座位、牌河、中央信息、播报，以及定缺和结算对话框。
 
-import { cleanup, effect, keymap, signal, Text, untracked, View } from "nsh";
+import { cleanup, effect, keymap, Scroll, signal, Text, untracked, View } from "nsh";
 import { HUMAN, SEAT_NAMES } from "../game/engine";
 import { points } from "../game/rules";
 import { type Suit, suitName, SUITS } from "../game/tile";
 import { Appear, Button, cx, Dialog, Surface, Tile } from "../ui";
+import { compact } from "./layout";
 import { MyHand } from "./MyHand";
 import { OtherHand, River, SeatHeader, signed } from "./Seat";
 import type { Table } from "./store";
@@ -55,13 +56,13 @@ function Center(props: { table: Table }) {
     return e.length > 0 ? e[e.length - 1].text : "";
   };
   return (
-    <Surface variant="inset" class="w-[220px] px-4 py-3 items-center gap-1.5" accessibilityLabel="牌桌信息">
+    <Surface variant="inset" class={cx("items-center", compact() ? "w-[180px] px-3 py-1.5 gap-0.5" : "w-[220px] px-4 py-3 gap-1.5")} accessibilityLabel="牌桌信息">
       <Text class="text-[12px] text-felt-muted">{`第 ${t.round()} 局`}</Text>
       <View class="flex-row items-baseline gap-1">
-        <Text class="text-[30px] font-semibold text-felt-foreground tabular-nums leading-none">{String(t.view().wall)}</Text>
+        <Text class={cx(compact() ? "text-[22px]" : "text-[30px]", "font-semibold text-felt-foreground tabular-nums leading-none")}>{String(t.view().wall)}</Text>
         <Text class="text-[12px] text-felt-muted">张</Text>
       </View>
-      <Text class="line-clamp-2 text-[12px] text-felt-foreground text-center min-h-[32px]">
+      <Text class={cx("line-clamp-2 text-[12px] text-felt-foreground text-center", compact() ? "min-h-[16px]" : "min-h-[32px]")}>
         {last()}
       </Text>
     </Surface>
@@ -167,6 +168,7 @@ export function RulesDialog(props: { open: () => boolean; onClose: () => void })
   ];
   return (
     <Dialog open={props.open()} title="规则" dismissible onClose={props.onClose} width="md" footer={<Button label="知道了" variant="primary" onPress={props.onClose} />}>
+      <Scroll class={compact() ? "max-h-[180px]" : "max-h-[420px]"}>
       <View class="gap-2.5">
         <Each of={lines}>
           {(l) => (
@@ -177,6 +179,7 @@ export function RulesDialog(props: { open: () => boolean; onClose: () => void })
           )}
         </Each>
       </View>
+      </Scroll>
     </Dialog>
   );
 }
@@ -222,35 +225,35 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
   });
 
   return (
-    <Surface variant="felt" class="flex-1 p-4 gap-3">
+    <Surface variant="felt" class={cx("flex-1", compact() ? "px-3 py-2 gap-1.5" : "p-4 gap-3")}>
       {/* 对家 */}
-      <View class="items-center gap-2">
+      <View class={cx("items-center", compact() ? "flex-row justify-center gap-3" : "gap-2")}>
         <SeatHeader seat={seat(2)} dealer={t.view().dealer === 2} align="center" />
-        <OtherHand seat={seat(2)} size="sm" />
+        <OtherHand seat={seat(2)} size={compact() ? "xs" : "sm"} />
       </View>
 
-      <View class="flex-1 flex-row gap-4">
+      <View class={cx("flex-1 flex-row", compact() ? "gap-2" : "gap-4")}>
         {/* 上家 */}
-        <View class="w-[200px] gap-2">
+        <View class={cx(compact() ? "w-[150px] gap-1" : "w-[200px] gap-2")}>
           <SeatHeader seat={seat(3)} dealer={t.view().dealer === 3} />
-          <OtherHand seat={seat(3)} size="xs" wrap />
-          <River seat={seat(3)} last={lastFrom(3)} label="上家的牌河" class="flex-1 mt-2" />
+          <OtherHand seat={seat(3)} size="xs" wrap summary={compact()} />
+          <River seat={seat(3)} last={lastFrom(3)} label="上家的牌河" size={compact() ? "xs" : "sm"} class={cx("flex-1", compact() ? "mt-1" : "mt-2")} />
         </View>
 
         {/* 中央 */}
-        <View class="flex-1 items-center gap-3">
-          <River seat={seat(2)} last={lastFrom(2)} label="对家的牌河" class="w-[320px] min-h-[72px] justify-center" />
+        <View class={cx("flex-1 items-center", compact() ? "gap-1" : "gap-3")}>
+          <River seat={seat(2)} last={lastFrom(2)} label="对家的牌河" size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[27px]" : "w-[320px] min-h-[72px]")} />
           <View class="flex-1 justify-center">
             <Center table={t} />
           </View>
-          <River seat={seat(HUMAN)} last={lastFrom(HUMAN)} label="你的牌河" class="w-[320px] min-h-[72px] justify-center" />
+          <River seat={seat(HUMAN)} last={lastFrom(HUMAN)} label="你的牌河" size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[27px]" : "w-[320px] min-h-[72px]")} />
         </View>
 
         {/* 下家 */}
-        <View class="w-[200px] gap-2 items-end">
+        <View class={cx("items-end", compact() ? "w-[150px] gap-1" : "w-[200px] gap-2")}>
           <SeatHeader seat={seat(1)} dealer={t.view().dealer === 1} />
-          <OtherHand seat={seat(1)} size="xs" wrap />
-          <River seat={seat(1)} last={lastFrom(1)} label="下家的牌河" class="flex-1 mt-2 justify-end" />
+          <OtherHand seat={seat(1)} size="xs" wrap summary={compact()} />
+          <River seat={seat(1)} last={lastFrom(1)} label="下家的牌河" size={compact() ? "xs" : "sm"} class={cx("flex-1 justify-end", compact() ? "mt-1" : "mt-2")} />
         </View>
       </View>
 

@@ -1,6 +1,6 @@
 {
   "name": "血战到底",
-  "id": "com.example.xuezhan",
+  "id": "com.huacnlee.mojang",
   "version": "1.0.0",
   "build": 1,
   "theme": "theme.json",
@@ -17,6 +17,20 @@
     "titleBar": {
       "style": "hidden",
       "height": 48
+    }
+  },
+  "icon": "assets/icon.png",
+  "ios": {
+    "infoPlist": {
+      "UISupportedInterfaceOrientations": [
+        "UIInterfaceOrientationLandscapeLeft",
+        "UIInterfaceOrientationLandscapeRight"
+      ],
+      "UISupportedInterfaceOrientations~ipad": [
+        "UIInterfaceOrientationLandscapeLeft",
+        "UIInterfaceOrientationLandscapeRight"
+      ],
+      "UIRequiresFullScreen": true
     }
   }
 }

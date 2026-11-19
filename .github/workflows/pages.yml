@@ -1,0 +1,47 @@
+# 推送到 main 时把网页版发布到 GitHub Pages：打开网址就是游戏。
+name: Web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  NSH_VERSION: v0.6.0
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install nsh
+        run: |
+          curl -fsSL https://nsh.dev/install.sh | NSH_VERSION=$NSH_VERSION sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Test
+        run: nsh test
+      - name: Package
+        run: |
+          nsh package --target web -o out/web
+          mkdir -p site
+          cp -R out/web/*/. site/
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

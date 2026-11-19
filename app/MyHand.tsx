@@ -3,7 +3,8 @@
 import { Text, View } from "nsh";
 import { HUMAN } from "../game/engine";
 import { tileName } from "../game/tile";
-import { Appear, Button, HandTile, Kbd } from "../ui";
+import { Appear, Button, cx, HandTile, Kbd } from "../ui";
+import { compact, touch } from "./layout";
 import { MeldGroup, SeatHeader } from "./Seat";
 import type { Table } from "./store";
 
@@ -12,7 +13,7 @@ export function ActionBar(props: { table: Table }) {
   const claim = () => t.view().claim;
   const turn = () => t.view().turn;
   return (
-    <View class="h-11 flex-row items-center justify-center gap-2">
+    <View class={cx("flex-row items-center justify-center gap-2", compact() ? "h-10" : "h-11")}>
       <If when={claim()}>
         {(c) => (
           <Appear motion="rise" class="flex-row items-center gap-2">
@@ -77,11 +78,11 @@ function Hint(props: { table: Table }) {
     return "";
   };
   return (
-    <View class="h-6 flex-row items-center justify-center gap-3">
-      <Text class="text-[13px] text-felt-foreground">
+    <View class={cx("flex-row items-center gap-3", compact() ? "flex-1 justify-start" : "h-6 justify-center")}>
+      <Text class={cx("text-felt-foreground", compact() ? "text-[12px]" : "text-[13px]")}>
         {text()}
       </Text>
-      <If when={t.view().turn !== null}>
+      <If when={t.view().turn !== null && !touch && !compact()}>
         <View class="flex-row items-center gap-1">
           <Kbd label="←" />
           <Kbd label="→" />
@@ -99,25 +100,43 @@ export function MyHand(props: { table: Table }) {
   const me = () => t.view().seats[HUMAN];
   const myTurn = () => t.view().turn !== null;
   const handLength = () => me().hand.length;
+  const handSize = () => (compact() ? "ml" : "lg");
   return (
-    <View class="items-center gap-1.5">
-      <ActionBar table={t} />
-      <Hint table={t} />
-      <View class="flex-row items-end gap-4">
-        <View class="pb-1">
+    <View class={cx("items-center", compact() ? "gap-1" : "gap-1.5")}>
+      <If
+        when={compact()}
+        else={
+          <>
+            <ActionBar table={t} />
+            <Hint table={t} />
+          </>
+        }
+      >
+        {/* 紧凑布局：座位、提示、操作放在一行。 */}
+        <View class="self-stretch flex-row items-center gap-3 h-10">
           <SeatHeader seat={me} dealer={t.view().dealer === HUMAN} />
+          <Hint table={t} />
+          <ActionBar table={t} />
         </View>
+      </If>
+      <View class={cx("flex-row items-end", compact() ? "gap-2" : "gap-4")}>
+        <If when={!compact()}>
+          <View class="pb-1">
+            <SeatHeader seat={me} dealer={t.view().dealer === HUMAN} />
+          </View>
+        </If>
         <If when={me().melds.length > 0}>
           <View class="flex-row gap-1.5 items-end">
             <Each of={me().melds} key="index">
-              {(m) => <MeldGroup meld={m} size="md" />}
+              {(m) => <MeldGroup meld={m} size={compact() ? "sm" : "md"} />}
             </Each>
           </View>
         </If>
-        <View accessibilityLabel="你的手牌" class="flex-row items-end gap-1 pt-3">
+        <View accessibilityLabel="你的手牌" class={cx("flex-row items-end gap-1", compact() ? "pt-2" : "pt-3")}>
           <Each of={me().hand} key="index">
             {(tile, i) => (
               <HandTile
+                size={handSize()}
                 tile={tile()}
                 selected={t.selected() === i()}
                 muted={myTurn() && !t.canPlay(i())}
@@ -129,8 +148,9 @@ export function MyHand(props: { table: Table }) {
           </Each>
           <If when={me().drawn}>
             {(d) => (
-              <Appear motion="draw" class="ml-3">
+              <Appear motion="draw" class={compact() ? "ml-2" : "ml-3"}>
                 <HandTile
+                  size={handSize()}
                   tile={d().tile}
                   selected={t.selected() === handLength()}
                   muted={myTurn() && !t.canPlay(handLength())}

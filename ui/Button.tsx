@@ -1,7 +1,10 @@
-import { type JSX, Text } from "nsh";
+import { type JSX, platform, Text } from "nsh";
 import { Button as BaseButton } from "nsh/base";
 import { cx } from "./cx";
 import { transition } from "./motion";
+
+/** 触屏设备不显示快捷键。 */
+const touch = platform.os === "ios" || platform.os === "android";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "call" | "win";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -59,7 +62,7 @@ export function Button(props: ButtonProps) {
     >
       {props.icon}
       <Text class={cx(v().text, s().text)}>{props.label}</Text>
-      {props.shortcut ? <Text class={cx(v().text, "text-[11px] opacity-60")}>{props.shortcut}</Text> : null}
+      {props.shortcut && !touch ? <Text class={cx(v().text, "text-[11px] opacity-60")}>{props.shortcut}</Text> : null}
     </BaseButton>
   );
 }

@@ -1,0 +1,152 @@
+# 打 tag（v*）时在各平台打包，并创建 GitHub Release。
+# 可选的签名密钥（在仓库 Settings → Secrets 里配置）：
+#   Android：ANDROID_KEYSTORE_BASE64、ANDROID_KEY_ALIAS、ANDROID_KEYSTORE_PASSWORD
+#   iOS：    IOS_CERT_P12_BASE64、IOS_CERT_PASSWORD、IOS_PROFILE_BASE64、IOS_SIGN_IDENTITY
+# 没有配置时：Android 用调试签名（可直接安装），iOS 只出模拟器包和未签名的 .app。
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  NSH_VERSION: v0.6.0
+
+jobs:
+  apple:
+    name: macOS / iOS
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install nsh
+        run: |
+          curl -fsSL https://nsh.dev/install.sh | NSH_VERSION=$NSH_VERSION sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Test
+        run: nsh test
+      - name: macOS
+        run: |
+          nsh package --target macos -o out/macos
+          mkdir -p dist
+          ditto -c -k --keepParent out/macos/*.app dist/mojang-macos-arm64.zip
+      - name: iOS simulator
+        run: |
+          nsh package --target ios-simulator -o out/ios-sim
+          ditto -c -k --keepParent out/ios-sim/*.app dist/mojang-ios-simulator.zip
+      - name: iOS device
+        env:
+          IOS_CERT_P12_BASE64: ${{ secrets.IOS_CERT_P12_BASE64 }}
+          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          IOS_PROFILE_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
+          IOS_SIGN_IDENTITY: ${{ secrets.IOS_SIGN_IDENTITY }}
+        run: |
+          if [ -n "$IOS_CERT_P12_BASE64" ]; then
+            KC="$RUNNER_TEMP/sign.keychain-db"
+            security create-keychain -p ci "$KC"
+            security set-keychain-settings "$KC"
+            security unlock-keychain -p ci "$KC"
+            echo "$IOS_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+            security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
+            security set-key-partition-list -S apple-tool:,apple: -k ci "$KC"
+            security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+            echo "$IOS_PROFILE_BASE64" | base64 --decode > "$RUNNER_TEMP/app.mobileprovision"
+            nsh package --target ios -o out/ios --sign "$IOS_SIGN_IDENTITY" --profile "$RUNNER_TEMP/app.mobileprovision"
+            cp out/ios/*.ipa dist/mojang-ios.ipa
+          else
+            nsh package --target ios -o out/ios
+            ditto -c -k --keepParent out/ios/*.app dist/mojang-ios-unsigned.zip
+          fi
+      - uses: actions/upload-artifact@v4
+        with: { name: apple, path: dist/* }
+
+  android:
+    name: Android
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - name: Install nsh
+        run: |
+          curl -fsSL https://nsh.dev/install.sh | NSH_VERSION=$NSH_VERSION sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Package
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          NSH_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+            nsh package --target android -o out/android --keystore "$RUNNER_TEMP/release.jks" --key-alias "$ANDROID_KEY_ALIAS"
+          else
+            nsh package --target android -o out/android
+          fi
+          mkdir -p dist
+          cp out/android/*.apk dist/mojang-android.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: android, path: dist/* }
+
+  linux:
+    name: Linux
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install nsh
+        run: |
+          curl -fsSL https://nsh.dev/install.sh | NSH_VERSION=$NSH_VERSION sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Package
+        run: |
+          nsh package --target linux -o out/linux
+          mkdir -p dist
+          cp out/linux/*.tar.gz dist/mojang-linux-x86_64.tar.gz
+      - uses: actions/upload-artifact@v4
+        with: { name: linux, path: dist/* }
+
+  windows:
+    name: Windows
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install nsh
+        shell: pwsh
+        run: |
+          $env:NSH_VERSION = "${{ env.NSH_VERSION }}"
+          irm https://nsh.dev/install.ps1 | iex
+          "$env:LOCALAPPDATA\nsh\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+      - name: Package
+        shell: pwsh
+        run: |
+          nsh package --target windows -o out/windows
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item (Get-ChildItem out/windows/*.zip | Select-Object -First 1).FullName dist/mojang-windows-x86_64.zip
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: dist/* }
+
+  release:
+    name: GitHub Release
+    needs: [apple, android, linux, windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: dist, merge-multiple: true }
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then TAG="v$(jq -r .version nsh.json)"; fi
+          NOTES="安装方法见 README。网页版：https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --title "血战到底 $TAG" --notes "$NOTES"
+          fi

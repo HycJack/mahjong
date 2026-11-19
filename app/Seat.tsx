@@ -84,7 +84,7 @@ function meldLabel(m: Meld) {
 }
 
 /** 别人的手：没胡是牌背，胡了摊开（胡的那张高亮）。 */
-export function OtherHand(props: { seat: () => SeatView; size: TileSize; wrap?: boolean }) {
+export function OtherHand(props: { seat: () => SeatView; size: TileSize; wrap?: boolean; summary?: boolean }) {
   const s = () => props.seat();
   return (
     <View class={cx("flex-row gap-1.5 items-end", props.wrap && "flex-wrap")}>
@@ -94,11 +94,18 @@ export function OtherHand(props: { seat: () => SeatView; size: TileSize; wrap?: 
       <If
         when={s().hand.length > 0}
         else={
+          props.summary ? (
+            <View class="flex-row items-center gap-1" accessibilityLabel={`${s().handCount} 张手牌`}>
+              <TileBack size={props.size} />
+              <Text class="text-[12px] text-felt-muted tabular-nums">{`×${s().handCount}`}</Text>
+            </View>
+          ) : (
           <View class={cx("flex-row gap-px", props.wrap && "flex-wrap")} accessibilityLabel={`${s().handCount} 张手牌`}>
             <Each of={Array.from({ length: s().handCount }, (_, i) => i)} key="index">
               {() => <TileBack size={props.size} />}
             </Each>
           </View>
+          )
         }
       >
         <View class={cx("flex-row gap-px", props.wrap && "flex-wrap")}>
@@ -122,13 +129,13 @@ function revealed(s: SeatView): { tile: TileId; win: boolean }[] {
 }
 
 /** 牌河：打出的牌，最后一张标出。 */
-export function River(props: { seat: () => SeatView; last: () => boolean; label: string; class?: string }) {
+export function River(props: { seat: () => SeatView; last: () => boolean; label: string; size?: TileSize; class?: string }) {
   return (
-    <View accessibilityLabel={props.label} class={cx("flex-row flex-wrap gap-[3px] content-start", props.class)}>
+    <View accessibilityLabel={props.label} class={cx("flex-row flex-wrap content-start", props.size === "xs" ? "gap-[2px]" : "gap-[3px]", props.class)}>
       <Each of={props.seat().discards} key="index">
         {(t, i) => (
           <Appear motion="discard">
-            <Tile tile={t()} size="sm" highlight={props.last() && i() === props.seat().discards.length - 1} />
+            <Tile tile={t()} size={props.size ?? "sm"} highlight={props.last() && i() === props.seat().discards.length - 1} />
           </Appear>
         )}
       </Each>
