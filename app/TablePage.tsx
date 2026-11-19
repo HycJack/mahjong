@@ -239,25 +239,25 @@ export function TablePage(props: { table: Table; rulesOpen: () => boolean; onRul
 
       <View class={cx("flex-1 flex-row", compact() ? "gap-2" : "gap-4")}>
         {/* 上家 */}
-        <View class={cx(compact() ? "w-[150px] gap-1" : "w-[200px] gap-2")}>
+        <View class={cx(compact() ? "w-[150px] gap-1" : "w-[250px] gap-2")}>
           <SeatHeader seat={seat(3)} dealer={t.view().dealer === 3} />
-          <OtherHand seat={seat(3)} size="xs" wrap summary={compact()} />
+          <OtherHand seat={seat(3)} size={compact() ? "xs" : "sm"} summary />
           <River seat={seat(3)} last={lastFrom(3)} label="上家的牌河" size={compact() ? "xs" : "sm"} class={cx("flex-1", compact() ? "mt-1" : "mt-2")} />
         </View>
 
         {/* 中央 */}
         <View class={cx("flex-1 items-center", compact() ? "gap-1" : "gap-3")}>
-          <River seat={seat(2)} last={lastFrom(2)} label="对家的牌河" size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[27px]" : "w-[320px] min-h-[72px]")} />
+          <River seat={seat(2)} last={lastFrom(2)} label="对家的牌河" size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[30px]" : "w-[460px] min-h-[94px]")} />
           <View class="flex-1 justify-center">
             <Center table={t} />
           </View>
-          <River seat={seat(HUMAN)} last={lastFrom(HUMAN)} label="你的牌河" size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[27px]" : "w-[320px] min-h-[72px]")} />
+          <River seat={seat(HUMAN)} last={lastFrom(HUMAN)} label="你的牌河" size={compact() ? "xs" : "sm"} class={cx("justify-center", compact() ? "w-full min-h-[30px]" : "w-[460px] min-h-[94px]")} />
         </View>
 
         {/* 下家 */}
-        <View class={cx("items-end", compact() ? "w-[150px] gap-1" : "w-[200px] gap-2")}>
+        <View class={cx("items-end", compact() ? "w-[150px] gap-1" : "w-[250px] gap-2")}>
           <SeatHeader seat={seat(1)} dealer={t.view().dealer === 1} />
-          <OtherHand seat={seat(1)} size="xs" wrap summary={compact()} />
+          <OtherHand seat={seat(1)} size={compact() ? "xs" : "sm"} summary />
           <River seat={seat(1)} last={lastFrom(1)} label="下家的牌河" size={compact() ? "xs" : "sm"} class={cx("flex-1 justify-end", compact() ? "mt-1" : "mt-2")} />
         </View>
       </View>

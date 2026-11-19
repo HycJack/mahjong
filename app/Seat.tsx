@@ -1,9 +1,9 @@
 // 一家的座位：名字、缺门、分数、状态，以及副露和手牌。
 
-import { createMotion, Text, View } from "nsh";
+import { createMotion, effect, Text, untracked, View } from "nsh";
 import { isGang, type Meld, points } from "../game/rules";
 import { suitName, type Suit, type Tile as TileId } from "../game/tile";
-import { Appear, Badge, type BadgeVariant, cx, Tile, TileBack, type TileSize } from "../ui";
+import { Appear, Badge, type BadgeVariant, cx, nudge, Tile, TileBack, type TileSize } from "../ui";
 import type { SeatView } from "./store";
 
 const voidVariant: BadgeVariant[] = ["wan", "tiao", "tong"];
@@ -19,9 +19,26 @@ function Thinking() {
 /** 座位的标题行。 */
 export function SeatHeader(props: { seat: () => SeatView; dealer: boolean; align?: "start" | "center" }) {
   const s = () => props.seat();
+  // 轮到这家时名字弹一下；分数变动时数字弹一下。
+  const turnPop = createMotion();
+  const scorePop = createMotion();
+  let wasTurn = false;
+  effect(() => {
+    const turn = s().isTurn;
+    if (turn && !wasTurn) untracked(() => void turnPop.play(nudge.bump));
+    wasTurn = turn;
+  });
+  let lastDelta = 0;
+  effect(() => {
+    const d = s().delta;
+    if (d !== lastDelta) untracked(() => void scorePop.play(nudge.bump));
+    lastDelta = d;
+  });
   return (
     <View class={cx("flex-row items-center gap-1.5", props.align === "center" && "justify-center")}>
-      <Badge label={s().name} variant={s().isTurn ? "turn" : "felt"} strong />
+      <View style={turnPop.style}>
+        <Badge label={s().name} variant={s().isTurn ? "turn" : "felt"} strong />
+      </View>
       <If when={props.dealer}>
         <Badge label="庄" variant="felt" accessibilityLabel="庄家" />
       </If>
@@ -36,7 +53,7 @@ export function SeatHeader(props: { seat: () => SeatView; dealer: boolean; align
         {(win) => (
           <Appear motion="pop">
             <Badge
-              label={`${win().from === null ? "自摸" : "胡"} · ${win().score.fan} 番`}
+              label={`${win().from === null ? "自摸" : "胡"} · ${win().score.fan > 0 ? `${win().score.fan} 番` : "平胡"}`}
               variant="win"
               strong
               accessibilityLabel={`第${win().order}个胡牌，${win().score.fan}番，${points(win().score.fan)}分`}
@@ -48,6 +65,7 @@ export function SeatHeader(props: { seat: () => SeatView; dealer: boolean; align
         <Thinking />
       </If>
       <Text
+        style={scorePop.style}
         accessibilityLabel={`本局${signed(s().delta)}分`}
         class={cx(
           "text-[13px] font-semibold tabular-nums ml-1",
@@ -84,33 +102,45 @@ function meldLabel(m: Meld) {
 }
 
 /** 别人的手：没胡是牌背，胡了摊开（胡的那张高亮）。 */
-export function OtherHand(props: { seat: () => SeatView; size: TileSize; wrap?: boolean; summary?: boolean }) {
+export function OtherHand(props: { seat: () => SeatView; size: TileSize; summary?: boolean }) {
   const s = () => props.seat();
+  // 两侧（summary）是竖向一栏：副露、手牌各占一行，摊开的手牌按栏宽换行。
+  const stacked = () => props.summary === true;
   return (
-    <View class={cx("flex-row gap-1.5 items-end", props.wrap && "flex-wrap")}>
-      <Each of={s().melds} key="index">
-        {(m) => <MeldGroup meld={m} size={props.size} />}
-      </Each>
+    <View class={cx("gap-1.5", stacked() ? "self-stretch" : "flex-row items-end")}>
+      <View class={cx("flex-row gap-1.5 items-end", stacked() && "flex-wrap")}>
+        <Each of={s().melds} key="index">
+          {(m) => (
+            <Appear motion="meld">
+              <MeldGroup meld={m} size={props.size} />
+            </Appear>
+          )}
+        </Each>
+      </View>
       <If
         when={s().hand.length > 0}
         else={
-          props.summary ? (
+          stacked() ? (
             <View class="flex-row items-center gap-1" accessibilityLabel={`${s().handCount} 张手牌`}>
               <TileBack size={props.size} />
               <Text class="text-[12px] text-felt-muted tabular-nums">{`×${s().handCount}`}</Text>
             </View>
           ) : (
-          <View class={cx("flex-row gap-px", props.wrap && "flex-wrap")} accessibilityLabel={`${s().handCount} 张手牌`}>
-            <Each of={Array.from({ length: s().handCount }, (_, i) => i)} key="index">
-              {() => <TileBack size={props.size} />}
-            </Each>
-          </View>
+            <View class="flex-row gap-px" accessibilityLabel={`${s().handCount} 张手牌`}>
+              <Each of={Array.from({ length: s().handCount }, (_, i) => i)} key="index">
+                {() => <TileBack size={props.size} />}
+              </Each>
+            </View>
           )
         }
       >
-        <View class={cx("flex-row gap-px", props.wrap && "flex-wrap")}>
+        <View class={cx("flex-row gap-px", stacked() && "flex-wrap")}>
           <Each of={revealed(s())} key="index">
-            {(t) => <Tile tile={t().tile} size={props.size} highlight={t().win} />}
+            {(t, i) => (
+              <Appear motion="reveal" delay={i() * 25}>
+                <Tile tile={t().tile} size={stacked() ? "xs" : props.size} highlight={t().win} />
+              </Appear>
+            )}
           </Each>
         </View>
       </If>

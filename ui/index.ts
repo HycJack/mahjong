@@ -5,6 +5,6 @@ export { cx } from "./cx";
 export { Dialog } from "./Dialog";
 export { ExternalLink } from "./ExternalLink";
 export { Kbd } from "./Kbd";
-export { duration, enter, transition } from "./motion";
+export { duration, enter, nudge, spring, transition } from "./motion";
 export { Surface } from "./Surface";
 export { HandTile, Tile, TileBack, type TileSize } from "./Tile";

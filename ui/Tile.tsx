@@ -1,18 +1,18 @@
-import { Text, View } from "nsh";
+import { createMotion, effect, Text, untracked, View } from "nsh";
 import { Button as BaseButton } from "nsh/base";
 import { type Tile as TileId, tileName } from "../game/tile";
 import { cx } from "./cx";
-import { transition } from "./motion";
+import { nudge, transition } from "./motion";
 import { type FaceMetrics, TileFace } from "./TileFace";
 
 export type TileSize = "xs" | "sm" | "md" | "ml" | "lg";
 
 const sizes: Record<TileSize, { box: string; edge: string; face: FaceMetrics }> = {
-  xs: { box: "w-[18px] h-[25px]", edge: "border-b-[2px]", face: { w: 15, h: 19, rank: 10, wan: 8 } },
-  sm: { box: "w-[24px] h-[33px]", edge: "border-b-[2px]", face: { w: 20, h: 26, rank: 12, wan: 10 } },
-  md: { box: "w-[30px] h-[41px]", edge: "border-b-[3px]", face: { w: 25, h: 32, rank: 15, wan: 13 } },
-  ml: { box: "w-[38px] h-[53px]", edge: "border-b-[3px]", face: { w: 31, h: 42, rank: 18, wan: 16 } },
-  lg: { box: "w-[46px] h-[64px]", edge: "border-b-[4px]", face: { w: 38, h: 51, rank: 22, wan: 20 } },
+  xs: { box: "w-[20px] h-[28px]", edge: "border-b-[2px]", face: { w: 16, h: 21, rank: 11, wan: 9 } },
+  sm: { box: "w-[32px] h-[44px]", edge: "border-b-[3px]", face: { w: 26, h: 34, rank: 16, wan: 13 } },
+  md: { box: "w-[38px] h-[52px]", edge: "border-b-[3px]", face: { w: 31, h: 41, rank: 19, wan: 16 } },
+  ml: { box: "w-[42px] h-[58px]", edge: "border-b-[3px]", face: { w: 35, h: 46, rank: 20, wan: 18 } },
+  lg: { box: "w-[58px] h-[80px]", edge: "border-b-[5px]", face: { w: 48, h: 64, rank: 28, wan: 25 } },
 };
 
 function Face(props: { tile: TileId; size: TileSize }) {
@@ -59,7 +59,14 @@ export function HandTile(props: {
   testID?: string;
   onPress?: () => void;
 }) {
+  // 选中时整张牌用弹簧抬起，取消时落回；连按两张也能接着上一段速度走。
+  const lift = createMotion();
+  effect(() => {
+    const up = props.selected === true;
+    untracked(() => void lift.play(nudge.lift(up ? -14 : 0)));
+  });
   return (
+    <View style={lift.style}>
     <BaseButton
       selected={props.selected}
       disabled={props.disabled}
@@ -70,7 +77,7 @@ export function HandTile(props: {
         faceBox,
         sizes[props.size ?? "lg"].box,
         sizes[props.size ?? "lg"].edge,
-        "transition-all hover:-translate-y-1 selected:-translate-y-2 selected:ring-2 selected:ring-seat-turn",
+        "transition-all hover:-translate-y-1 selected:ring-2 selected:ring-seat-turn",
         "focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]",
         transition.base,
         props.muted && "opacity-45",
@@ -78,5 +85,6 @@ export function HandTile(props: {
     >
       <Face tile={props.tile} size={props.size ?? "lg"} />
     </BaseButton>
+    </View>
   );
 }
